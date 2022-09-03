@@ -263,20 +263,81 @@ For all of these scenarios, I used the tinkerbelle tool. My phone was used as "T
 
 # Staging Interaction, Part 2 
 
-This describes the second week's work for this lab activity.
-
-
-## Prep (to be done before Lab on Wednesday)
-
-You will be assigned three partners from another group. Go to their github pages, view their videos, and provide them with reactions, suggestions & feedback: explain to them what you saw happening in their video. Guess the scene and the goals of the character. Ask them about anything that wasn’t clear. 
+## Prep
 
 \*\***Summarize feedback from your partners here.**\*\*
 
+* Tony Wan: "Pillbox is a cool idea, however many of our older patients require many meds which would also require many different colors. It would be a nice addition if you added an audio feedback as well (which med is being picked). The stock price ticker is very intuitive."
+* Yusef Iskander: The pillbox seems useful, and it is good that it is not using red light continuously since that might be easily ignored. I watch soccer and the game is very slow but I don't want to miss the score so often times if I am watching a game, the TV channel puts the replay of the goal in a small box in the corner to update the viewers. Also, I think that the time to switch between channels is important so consider adding a vibration and sound into the mix.
+
 ## Make it your own
 
-Do last week’s assignment again, but this time: 
-1) It doesn’t have to (just) use light, 
-2) You can use any modality (e.g., vibration, sound) to prototype the behaviors! Again, be creative! Feel free to fork and modify the tinkerbell code! 
-3) We will be grading with an emphasis on creativity. 
-
 \*\***Document everything here. (Particularly, we would like to see the storyboard and video, although photos of the prototype are also great.)**\*\*
+
+### **Tinkerbelle Tool Modifications: New Modality - Speech**
+I made some modifications to the tinkerbelle tool so that it could speak words instead of just sounds. To do this, I had to change the code to use a new JS library called [SpeechSynthesisUtterance](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance) as well as add new buttons to the UI so that I could control it. I also added some preset buttons for the scenarios so I could do multiple actions simultaneously like flickering a light and sounding a horn. The forked code for this is located [here](https://github.com/jainr3/tinkerbelle).
+
+<img src="img/tinkerbelle_tool_modifications.png" alt="Tinkerbelle Tool Modifications">
+
+### **7 more storyboards (some are modified, others are new)**
+
+**Storyboard #1: Smart Pillbox**
+
+To make this idea clearer, I incorporated some of the feedback and had my costumed device speak to me so that I know which pills to take instead of having to remember the colors to pills mapping.
+
+<img src="img/v2_storyboard_1.png" alt="Storyboard 1">
+
+**Storyboard #2: Sports Team Score Light (similar to the hockey goal light)**
+
+For this interaction, I also added a horn sound to play when the goal is scored similar to the way it would be if you were physically located in the (hockey) stadium for example.
+
+<img src="img/v2_storyboard_2.png" alt="Storyboard 2">
+
+**Storyboard #3: TV Advertisements Light (variant of Storyboard #2)**
+
+This is a variant of storyboard #2 that I created after acting out the interaction. The idea work work as follows:
+
+* Setting: The interaction is happening in my living room with the television.
+* Players: Myself. This works for anyone in general and might especially be good for avid TV watchers.
+* Activity: The user will look at the TV Ad Light as an indication for when they should switch the channel back to their show. The light can light up different colors based on whether ads are currently playing on the channel (red) or whether the show is about to start (yellow) or whether the show is currently playing (green). Also, during the yellow phase a soundtrack countdown will play.
+* Goals: The user doesn't want to miss their favorite show but also doesn't want to watch a lot of the TV advertisements that are happening in between. Instead, they want to watch some other channel like the news and be alerted to whenever the show is about to start again. This device will ensure that they never miss their favorite show.
+
+<img src="img/v2_storyboard_3.png" alt="Storyboard 3">
+
+**Storyboard #4: Live-stream (Gaming) Donation / Subscriber / Following Indicator**
+
+For this interaction, I also added the ability for the "gaming controller" costume to speak so it could tell me who the donation is from or buzz if there is a new subscriber / follower.
+
+<img src="img/v2_storyboard_4.png" alt="Storyboard 4">
+
+**Storyboard #5: Store Item Locator**
+
+For this interaction, I changed it to have the shopping cart point a colored laser out toward the direction of the item the person is looking for. The different colors (red / yellow / green) would be based on the current distance to the item.
+
+<img src="img/v2_storyboard_5.png" alt="Storyboard 5">
+
+**Storyboard #6: Expo hall booth tracker**
+
+For this interaction, I added the ability of the ID-card holder to emit buzzing sounds / vibrations in addition to the colored feedback. 
+
+<img src="img/v2_storyboard_6.png" alt="Storyboard 6">
+
+**Storyboard #7: Uber/Lyft/Package/Food Delivery Indicator**
+
+For this interaction, I made the lamp into a "smart lamp" by giving it the ability to flicker its lights and give speech feedback based on how far the Uber (or other delivery service) was from the location.
+
+<img src="img/v2_storyboard_7.png" alt="Storyboard 7">
+
+### **3 videos**
+
+**Video #1: Smart Pillbox**
+
+[![Smart Pillbox Scenario](https://img.youtube.com/vi/htKvIoFKX_E/0.jpg)](https://www.youtube.com/watch?v=htKvIoFKX_E)
+
+**Video #2: Sports Team Score Light (similar to the hockey goal light)**
+
+[![Sports Light Scenario](https://img.youtube.com/vi/pjqhGQDU9dQ/0.jpg)](https://www.youtube.com/watch?v=pjqhGQDU9dQ)
+
+**Video #3: TV Advertisements Light (variant of Storyboard #2)**
+
+[![TV Advertisements Scenario](https://img.youtube.com/vi/yvsZtvSERHQ/0.jpg)](https://www.youtube.com/watch?v=yvsZtvSERHQ)
