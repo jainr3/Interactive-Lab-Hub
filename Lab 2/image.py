@@ -26,6 +26,10 @@ cs_pin = digitalio.DigitalInOut(board.CE0)
 dc_pin = digitalio.DigitalInOut(board.D25)
 reset_pin = digitalio.DigitalInOut(board.D24)
 
+# Modification: Press a button to change the image to something else
+buttonA = digitalio.DigitalInOut(board.D23)
+buttonA.switch_to_input()
+
 # Config for display baudrate (default max is 24mhz):
 BAUDRATE = 24000000
 
@@ -66,15 +70,20 @@ else:
     width = disp.width  # we swap height/width to rotate it to landscape!
     height = disp.height
 image = Image.new("RGB", (width, height))
+image2 = Image.new("RGB", (width, height))
 
 # Get drawing object to draw on image.
 draw = ImageDraw.Draw(image)
+draw2 = ImageDraw.Draw(image2)
 
 # Draw a black filled box to clear the image.
 draw.rectangle((0, 0, width, height), outline=0, fill=(0, 0, 0))
 disp.image(image)
+draw2.rectangle((0, 0, width, height), outline=0, fill=(0, 0, 0))
+disp.image(image2)
 
 image = Image.open("red.jpg")
+image2 = Image.open("cornell_tech.jpg")
 backlight = digitalio.DigitalInOut(board.D22)
 backlight.switch_to_output()
 backlight.value = True
@@ -91,11 +100,30 @@ else:
     scaled_height = image.height * width // image.width
 image = image.resize((scaled_width, scaled_height), Image.BICUBIC)
 
+image2_ratio = image2.width / image2.height
+screen_ratio = width / height
+if screen_ratio < image2_ratio:
+    scaled_width2 = image2.width * height // image2.height
+    scaled_height2 = height
+else:
+    scaled_width2 = width
+    scaled_height2 = image2.height * width // image2.width
+image2 = image2.resize((scaled_width2, scaled_height2), Image.BICUBIC)
+
 # Crop and center the image
 x = scaled_width // 2 - width // 2
 y = scaled_height // 2 - height // 2
 image = image.crop((x, y, x + width, y + height))
+x2 = scaled_width2 // 2 - width // 2
+y2 = scaled_height2 // 2 - height // 2
+image2 = image2.crop((x, y, x + width, y + height))
 
 # Display image.
 disp.image(image)
 
+# Modification: Press a button to change the image to something else
+while True:
+    if not buttonA.value:
+        disp.image(image2)
+    else:
+        disp.image(image)
