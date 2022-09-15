@@ -150,10 +150,11 @@ Another idea could be to somehow incorporate the globe view if a different butto
 
 # Prep for Part 2
 
-1. Pick up remaining parts for kit on Thursday lab class. Check the updated [parts list inventory](partslist.md) and let the TA know if there is any part missing.
-  
+Peer Review Comments:
 
-2. Look at and give feedback on the Part G. for at least 2 other people in the class (and get 2 people to comment on your Part G!)
+Joseph Iovine : Try adding a reset button for the zoom
+Yusef Iskandar: Maybe add a scale, plus / minus visual button (piece of paper on the button)
+Kenneth Alvarez: Consider adding a list of images for the globe to solve the latency problem
 
 # Lab 2 Part 2
 
