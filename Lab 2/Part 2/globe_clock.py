@@ -4,7 +4,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
-import smbus, time
+import smbus, time, threading
 
 import digitalio
 import board
@@ -272,6 +272,22 @@ def qwiicjoystick():
         direction = "SELECT" # to switch to the flat view
     return direction
 
+def collect_images_separate_thread():
+    last_fetched = time.time()
+    refetch_time = 1 * 60 # in secs
+    print("Started image collection thread.")
+    while True:
+        if (time.time() - last_fetched) > refetch_time:
+            print("Re-collecting the images...")
+            last_fetched = time.time()
+            driver = webdriver.Chrome(driver_path, options=chrome_options)
+            collect_images(driver)
+            collect_image_flat_earth(driver)
+            # Do all the cropping after the new set of images is grabbed so there is no mismatch
+            crop_image()
+            crop_image_flat_earth(scale, l, t, r, b)
+            driver.quit()
+            print("Finished re-collecting images.")
 
 # Start the main program here
 image_num = 0
@@ -279,8 +295,13 @@ tag = "cn"
 scale = 1.00
 l, t, r, b = 140, 170, 140 + 240, 170 + 135 
 update = False
-#collect_images(driver) # TODO spawn a separate thread to collect the images every 30 minutes
+#collect_images(driver)
 #collect_image_flat_earth(driver)
+driver.quit()
+# Spawn a separate thread to collect the images every 30 minutes...
+thread = threading.Thread(target=collect_images_separate_thread)
+thread.start()
+
 crop_image()
 crop_image_flat_earth(scale, l, t, r, b)
 display_image_on_screen(image_num, tag)
@@ -358,5 +379,3 @@ while True:
 
     #if (not buttonA.value and not buttonB.value):  # none pressed
     #    pass
-
-driver.quit()
