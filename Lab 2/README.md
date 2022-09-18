@@ -1,7 +1,5 @@
 # Interactive Prototyping: The Clock of Pi
-**NAMES OF COLLABORATORS HERE**
-
-Rahul Jain
+**NAMES OF COLLABORATORS HERE**: Rahul Jain
 
 Does it feel like time is moving strangely during this semester?
 
@@ -15,7 +13,8 @@ It is worth spending a little time thinking about how you mark time, and what wo
   * [The Billion Dollar Code Netflix Series](https://en.wikipedia.org/wiki/The_Billion_Dollar_Code)
   * [Nasa Mars Clock](https://www.giss.nasa.gov/tools/mars24/)
   * Main source for Earth images is the [die.net World Sunlight Map](https://www.die.net/earth/)
-  * Many different sun clocks like these: [1](https://www.mathsisfun.com/sun-clock.html), [2](https://zoom.earth/), [3](https://www.nightearth.com/), [4](https://www.timeanddate.com/worldclock/sunearth.html?iso=20151222T1648&earth=1)
+  * Main source for Globe images is [nightearth.com](https://www.nightearth.com/)
+  * Many different sun clocks like these: [1](https://www.mathsisfun.com/sun-clock.html), [2](https://zoom.earth/), [3](https://www.timeanddate.com/worldclock/sunearth.html?iso=20151222T1648&earth=1), [Google Earth](https://www.google.com/maps/@13.3406399,-114.6590665,22983304m/data=!3m1!1e3) ([Google Earth](./img/google_maps.png) requires sign-in else [this happens](./Part%202/google_globe_0.png))
 
 ## Overview
 For this assignment, you are going to 
@@ -150,20 +149,77 @@ Another idea could be to somehow incorporate the globe view if a different butto
 
 # Prep for Part 2
 
-Peer Review Comments:
+## Peer Review Comments:
 
-Joseph Iovine : Try adding a reset button for the zoom
-Yusef Iskandar: Maybe add a scale, plus / minus visual button (piece of paper on the button)
-Kenneth Alvarez: Consider adding a list of images for the globe to solve the latency problem
+* Joseph Iovine : Try adding a reset button for the zoom
+
+* Yusef Iskandar: Maybe add a scale, plus / minus visual button (piece of paper on the button)
+
+* Kenneth Alvarez: Consider adding a list of images for the globe to solve the latency problem
+
+From this feedback, I decided to try using the globe view in combination with the earth's Mercator view. Because it was not technically possible to show a "video" of the earth rotating on the screen, I used the list of images idea instead so the user could pan around. I also added a plus / minus to the button so it was more obvious which was which.
+
+## Updated Verplank Diagram
+
+<img src="img/updated_verplank.png" alt="Updated Verplank Diagram">
+
+The big changes are the addition of the Globe view and the joystick which allows the user to pan around the globe or the flat map. To swap between views, the joystick button is used.
 
 # Lab 2 Part 2
 
-Pull Interactive Lab Hub updates to your repo.
+## Feature Improvements
 
-Modify the code from last week's lab to make a new visual interface for your new clock. You may [extend the Pi](Extending%20the%20Pi.md) by adding sensors or buttons, but this is not required.
+There were different pieces to implementing the project and a couple different technical tools that I used to make everything work (listed below):
 
-As always, make sure you document contributions and ideas from others explicitly in your writeup.
+* **Obtaining the Live Mercator Projection (Flat) Image**: I took the image from the [die.net World Sunlight Map](https://www.die.net/earth/) by webscraping it using Selenium in Python. This image is updated every 30 minutes as described above.
+\
+<img src="img/mercator_clock.jpg" alt="Mercator Clock" width="400">
 
-You are permitted (but not required) to work in groups and share a turn in; you are expected to make equal contribution on any group work you do, and N people's group project should look like N times the work of a single person's lab. What each person did should be explicitly documented. Make sure the page for the group turn in is linked to your Interactive Lab Hub page. 
+* **Obtaining the Live Globe Image**: This was the most complicated / difficult step. I took the 24 different images of the globe from [nightearth.com](https://www.nightearth.com/) in the Satellite view by webscraping it using Selenium in Python. Previously in part 1 of the lab, I only looked at the Night view which I thought was a bit misleading (since in areas where it was daytime would still show city lights), but the Satellite view shows the sun shading properly. See below for some examples. I had to capture 8 different images to get all the perspectives around the globe and then also 8 more for the top part of the globe and 8 more for the bottom part. These images are updated every 30 minutes and because Selenium is a bit slow, this process takes about 5 minutes which is acceptable for this use case. The testing script for this is [here](./Part%202/night_earth_globe_clock_rotate_test.py).
+\
+<img src="Part 2/globe_cn_0_cropped.jpg" alt="Satellite View" width="200">
+<img src="Part 2/globe_cn_1_cropped.jpg" alt="Satellite View" width="200">
+<img src="Part 2/globe_cn_2_cropped.jpg" alt="Satellite View" width="200">
+<img src="Part 2/globe_cn_5_cropped.jpg" alt="Satellite View" width="200">
+* **Cropping & displaying the Mercator Projection (Flat) Image**: I cropped the image to match the size of the screen. The cropping also had to take into account the scaling of the image and had to resize / rescale the image depending on if the user wants a zoomed in view. Additionally, I had to crop different sections of the image based on where the user was panning to. I tried a few different self-designed algorithms, so there might be some edge cases that are buggy. Some of the scratch work for that is [here](./Part%202/scaling_scratchwork.pdf) and the test code for cropping is [here](./Part%202/earth_clock_testing.py).
+* **Cropping & displaying the Globe View Images**: I cropped the image according to some preset coordinates (square) and then resized it so that it fit on the screen. Since this view only has the pan feature, I cropped all 24 images once and then just displayed them when the user panned to that area.
+* **Zoom In / Out on the Mercator (Flat) Image**: The two buttons located on the display allow for zooming in and out within some limits. This is good for users who want to zoom in on a particular area.
+* **User Panning**: For both the globe and flat views, the user can pan around to see different areas of the earth. For the globe image, the panning is allowed for 3 layers around the entire globe and the user can pan all the way around in any direction. The flat view allows the user to pan around in the image but limits the panning to the edges of the image. The user input for the panning comes from the Qwiic Joystick which I use like "arrow keys" to control the direction.
+* **Qwiic Joystick**: The qwiic joystick was added so the user can pan the image on the screen to see whether it is day or night at a particular location. Additionally, pressing the button on the joystick lets the user switch between the globe and flat views. A short script to test that is located [here](./Part%202/qwiic_joystick.py).
+
+## Final script and other testing
+
+**The final code script is located [here](./Part%202/globe_clock.py).** I also experimented with using the two buttons on the screen to let the user rotate the globe image side to side (script is [here](./Part%202/globe_clock_simple.py)) but this was only good if the user didn't want to pan up and down as well. I also tried to use the google earth globe which has much better graphics (see below) but I wasn't able to have the Pi automatically grab the live image using Selenium.
+
+<img src="img/google_maps.png" alt="Google Earth" width="200">
+
+## Video documenting globe view feature
+
+Rotating the joystick will let the user pan around the globe to see different views.
+
+[![Globe View Feature](https://img.youtube.com/vi/Lz7R5ytabOo/0.jpg)](https://www.youtube.com/watch?v=Lz7R5ytabOo)
+
+## Video documenting Mercator (flat) view feature
+
+Rotating the joystick will let the user pan around the flat image to see different views and pressing the buttons will allow for zoom in / out.
+
+[![Flat View Feature](https://img.youtube.com/vi/e0Bt10zUVuw/0.jpg)](https://www.youtube.com/watch?v=e0Bt10zUVuw)
+
+## Final Video of Interaction
+
+[![Final Video of Interaction](https://img.youtube.com/vi/tXeU4mNqZ1E/0.jpg)](https://www.youtube.com/watch?v=tXeU4mNqZ1E)
 
 
+## References
+
+The documentation that I referenced to create these scripts are listed below:
+
+* https://stackoverflow.com/questions/70410883/using-arrow-keys-on-chrome-selenium-popup-python
+* https://www.geeksforgeeks.org/special-keys-in-selenium-python/
+* https://www.browserstack.com/guide/python-selenium-to-run-web-automation-test
+* https://stackoverflow.com/questions/26566799/wait-until-page-is-loaded-with-selenium-webdriver-for-python
+* https://selenium-python.readthedocs.io/locating-elements.html
+* https://github.com/sparkfun/Qwiic_Joystick_Py
+* https://github.com/sparkfun/Qwiic_Joystick/blob/master/Firmware/Python%20Examples/Example%201%20-%20Basic%20Readings/Qwiic_Joystick.py
+* https://docs.particle.io/hardware/expansion/about-i2c/#i2c-scanner
+* https://learn.sparkfun.com/tutorials/qwiic-joystick-hookup-guide/hardware-overview
