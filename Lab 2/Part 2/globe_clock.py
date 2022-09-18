@@ -274,7 +274,7 @@ def qwiicjoystick():
 
 def collect_images_separate_thread():
     last_fetched = time.time()
-    refetch_time = 1 * 60 # in secs
+    refetch_time = 30 * 60 # in secs
     print("Started image collection thread.")
     while True:
         if (time.time() - last_fetched) > refetch_time:
@@ -295,8 +295,8 @@ tag = "cn"
 scale = 1.00
 l, t, r, b = 140, 170, 140 + 240, 170 + 135 
 update = False
-#collect_images(driver)
-#collect_image_flat_earth(driver)
+collect_images(driver)
+collect_image_flat_earth(driver)
 driver.quit()
 # Spawn a separate thread to collect the images every 30 minutes...
 thread = threading.Thread(target=collect_images_separate_thread)
