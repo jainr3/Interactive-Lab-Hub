@@ -176,11 +176,9 @@ There were different pieces to implementing the project and a couple different t
 <img src="img/mercator_clock.jpg" alt="Mercator Clock" width="400">
 
 * **Obtaining the Live Globe Image**: This was the most complicated / difficult step. I took the 24 different images of the globe from [nightearth.com](https://www.nightearth.com/) in the Satellite view by webscraping it using Selenium in Python. Previously in part 1 of the lab, I only looked at the Night view which I thought was a bit misleading (since in areas where it was daytime would still show city lights), but the Satellite view shows the sun shading properly. See below for some examples. I had to capture 8 different images to get all the perspectives around the globe and then also 8 more for the top part of the globe and 8 more for the bottom part. These images are updated every 30 minutes and because Selenium is a bit slow, this process takes about 5 minutes which is acceptable for this use case. The testing script for this is [here](./Part%202/night_earth_globe_clock_rotate_test.py).
-\
-<img src="Part 2/globe_cn_0_cropped.jpg" alt="Satellite View" width="200">
-<img src="Part 2/globe_cn_1_cropped.jpg" alt="Satellite View" width="200">
-<img src="Part 2/globe_cn_2_cropped.jpg" alt="Satellite View" width="200">
-<img src="Part 2/globe_cn_5_cropped.jpg" alt="Satellite View" width="200">
+
+
+<img src="Part 2/globe_cn_0_cropped.jpg" alt="Satellite View" width="200"/><img src="Part 2/globe_cn_1_cropped.jpg" alt="Satellite View" width="200"/><img src="Part 2/globe_cn_2_cropped.jpg" alt="Satellite View" width="200"/><img src="Part 2/globe_cn_5_cropped.jpg" alt="Satellite View" width="200"/>
 * **Cropping & displaying the Mercator Projection (Flat) Image**: I cropped the image to match the size of the screen. The cropping also had to take into account the scaling of the image and had to resize / rescale the image depending on if the user wants a zoomed in view. Additionally, I had to crop different sections of the image based on where the user was panning to. I tried a few different self-designed algorithms, so there might be some edge cases that are buggy. Some of the scratch work for that is [here](./Part%202/scaling_scratchwork.pdf) and the test code for cropping is [here](./Part%202/earth_clock_testing.py).
 * **Cropping & displaying the Globe View Images**: I cropped the image according to some preset coordinates (square) and then resized it so that it fit on the screen. Since this view only has the pan feature, I cropped all 24 images once and then just displayed them when the user panned to that area.
 * **Zoom In / Out on the Mercator (Flat) Image**: The two buttons located on the display allow for zooming in and out within some limits. This is good for users who want to zoom in on a particular area.
