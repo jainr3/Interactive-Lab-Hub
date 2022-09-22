@@ -39,12 +39,17 @@ pi@ixe00:~/text2speech $ cat festival_demo.sh
 echo "Just what do you think you're doing, Dave?" | festival --tts
 ```
 
+I ran each of the scripts and observed the speaker output differnt words at different pitches / tones / voices.
+
 Now, you might wonder what exactly is a `.sh` file? Typically, a `.sh` file is a shell script which you can execute in a terminal. The example files we offer here are for you to figure out the ways to play with audio on your Pi!
 
 You can also play audio files directly with `aplay filename`. Try typing `aplay lookdave.wav`.
 
 \*\***Write your own shell file to use your favorite of these TTS engines to have your Pi greet you by name.**\*\*
-(This shell file should be saved to your own repo for this lab.)
+
+I had to give my shell script [executable permissions](https://www.cyberciti.biz/faq/how-to-execute-a-shell-script-in-linux/) and then was able to run the [script](./part1_tts.sh). My favorite was the Google TTS engine which was actually able to pronounce my name correctly!
+
+[![Part 1 TTS Example](https://img.youtube.com/vi/zJuE9xaY4kA/0.jpg)](https://www.youtube.com/watch?v=zJuE9xaY4kA)
 
 Bonus: If this topic is very exciting to you, you can try out this new TTS system we recently learned about: https://github.com/rhasspy/larynx
 
@@ -67,7 +72,15 @@ Now, look at which camera you have. Do you have the cylinder camera (likely the 
 
 Then try `./vosk_demo_mic.sh`
 
+This example was particularly difficult to get working. The key is to have a quieter environment.
+
+[![Part 1 STT Example](https://img.youtube.com/vi/TyW1tRww2BE/0.jpg)](https://www.youtube.com/watch?v=TyW1tRww2BE)
+
 \*\***Write your own shell file that verbally asks for a numerical based input (such as a phone number, zipcode, number of pets, etc) and records the answer the respondent provides.**\*\*
+
+I wrote a short script to collect the numbers 0 to 9 verbally and adds the numbers together and outputs it to the console.
+
+[![Part 1 STT Example 2](https://img.youtube.com/vi/pBJGguAj7NA/0.jpg)](https://www.youtube.com/watch?v=pBJGguAj7NA)
 
 ### Serving Pages
 
@@ -86,6 +99,11 @@ pi@ixe00:~/Interactive-Lab-Hub/Lab 3 $ python server.py
  * Debugger PIN: 162-573-883
 ```
 From a remote browser on the same network, check to make sure your webserver is working by going to `http://<YourPiIPAddress>:5000`. You should be able to see "Hello World" on the webpage.
+
+Yes I was able to run the Hello World example. The output webpage is below:
+
+<img src="img/flask_hello_world.png" alt="Flask Hello World" width=400>
+
 
 ### Storyboard
 
