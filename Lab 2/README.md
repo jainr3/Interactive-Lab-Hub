@@ -141,9 +141,16 @@ Video of the Zoom In feature
 
 ## Part G. 
 ## Sketch and brainstorm further interactions and features you would like for your clock for Part 2.
+
+<img src="img/part_g_storyboard_1.png" alt="Part G Storyboard 1" width=400>
+
 Another function that might be desired by the user is the ability to pan around the image to see different parts of the Earth. This could be very useful if they don't know whether their friend on the other side of the world is awake or not. To control this, the user could use a joystick to move the image around the screen.
 
+<img src="img/part_g_storyboard_2.png" alt="Part G Storyboard 2" width=400>
+
 Also, depending on the exact technical implementation, I could overlay some text to show the digital time or possibly the timezone for the location currently shown. This could be useful so the user doesn't have to "eyeball" the time (although the main purpose of this clock is to indicate day / night at a high level and whether it is close to sunrise / sunset). To implement this, I would have to figure out the coordinates on the static map and then convert that to the time / timezone, which might be very difficult!
+
+<img src="img/part_g_storyboard_3.png" alt="Part G Storyboard 3" width=400>
 
 Another idea could be to somehow incorporate the globe view if a different button is pressed. Although the zoom in / out for that view seems out of reach for the lab, it would be interesting to test whether I could rotate the globe and show that to the user.
 
