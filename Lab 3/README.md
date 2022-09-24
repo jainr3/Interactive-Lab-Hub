@@ -20,30 +20,7 @@ I have pulled the latest content.
 
 ### Text to Speech 
 
-In this part of lab, we are going to start peeking into the world of audio on your Pi! 
-
-We will be using the microphone and speaker on your webcamera. In the home directory of your Pi, there is a folder called `text2speech` containing several shell scripts. `cd` to the folder and list out all the files by `ls`:
-
-```
-pi@ixe00:~/text2speech $ ls
-Download        festival_demo.sh  GoogleTTS_demo.sh  pico2text_demo.sh
-espeak_demo.sh  flite_demo.sh     lookdave.wav
-```
-
-You can run these shell files by typing `./filename`, for example, typing `./espeak_demo.sh` and see what happens. Take some time to look at each script and see how it works. You can see a script by typing `cat filename`. For instance:
-
-```
-pi@ixe00:~/text2speech $ cat festival_demo.sh 
-#from: https://elinux.org/RPi_Text_to_Speech_(Speech_Synthesis)#Festival_Text_to_Speech
-
-echo "Just what do you think you're doing, Dave?" | festival --tts
-```
-
 I ran each of the scripts and observed the speaker output differnt words at different pitches / tones / voices.
-
-Now, you might wonder what exactly is a `.sh` file? Typically, a `.sh` file is a shell script which you can execute in a terminal. The example files we offer here are for you to figure out the ways to play with audio on your Pi!
-
-You can also play audio files directly with `aplay filename`. Try typing `aplay lookdave.wav`.
 
 \*\***Write your own shell file to use your favorite of these TTS engines to have your Pi greet you by name.**\*\*
 
@@ -51,26 +28,7 @@ I had to give my shell script [executable permissions](https://www.cyberciti.biz
 
 [![Part 1 TTS Example](https://img.youtube.com/vi/zJuE9xaY4kA/0.jpg)](https://www.youtube.com/watch?v=zJuE9xaY4kA)
 
-Bonus: If this topic is very exciting to you, you can try out this new TTS system we recently learned about: https://github.com/rhasspy/larynx
-
 ### Speech to Text
-
-Now examine the `speech2text` folder. We are using a speech recognition engine, [Vosk](https://alphacephei.com/vosk/), which is made by researchers at Carnegie Mellon University. Vosk is amazing because it is an offline speech recognition engine; that is, all the processing for the speech recognition is happening onboard the Raspberry Pi. 
-
-In particular, look at `test_words.py` and make sure you understand how the vocab is defined. 
-Now, we need to find out where your webcam's audio device is connected to the Pi. Use `arecord -l` to get the card and device number:
-```
-pi@ixe00:~/speech2text $ arecord -l
-**** List of CAPTURE Hardware Devices ****
-card 1: Device [Usb Audio Device], device 0: USB Audio [USB Audio]
-  Subdevices: 1/1
-  Subdevice #0: subdevice #0
-```
-The example above shows a scenario where the audio device is at card 1, device 0. Now, use `nano vosk_demo_mic.sh` and change the `hw` parameter. In the case as shown above, change it to `hw:1,0`, which stands for card 1, device 0.  
-
-Now, look at which camera you have. Do you have the cylinder camera (likely the case if you received it when we first handed out kits), change the `-r 16000` parameter to `-r 44100`. If you have the IMISES camera, check if your rate parameter says `-r 16000`. Save the file using Write Out and press enter.
-
-Then try `./vosk_demo_mic.sh`
 
 This example was particularly difficult to get working. The key is to have a quieter environment.
 
@@ -78,53 +36,79 @@ This example was particularly difficult to get working. The key is to have a qui
 
 \*\***Write your own shell file that verbally asks for a numerical based input (such as a phone number, zipcode, number of pets, etc) and records the answer the respondent provides.**\*\*
 
-I wrote a short script to collect the numbers 0 to 9 verbally and adds the numbers together and outputs it to the console.
+I wrote a [short script](./part1_stt.sh) and [short python file](./part1_stt.py) that acts as a verbal calculator. First, the Pi will ask for numbers 0 to 9 to add together, then the user speaks and the sound is collected and processed. Once the numbers are identified, the numbers are added together and outputted to the console.
 
 [![Part 1 STT Example 2](https://img.youtube.com/vi/pBJGguAj7NA/0.jpg)](https://www.youtube.com/watch?v=pBJGguAj7NA)
 
 ### Serving Pages
 
-In Lab 1, we served a webpage with flask. In this lab, you may find it useful to serve a webpage for the controller on a remote device. Here is a simple example of a webserver.
-
-```
-pi@ixe00:~/Interactive-Lab-Hub/Lab 3 $ python server.py
- * Serving Flask app "server" (lazy loading)
- * Environment: production
-   WARNING: This is a development server. Do not use it in a production deployment.
-   Use a production WSGI server instead.
- * Debug mode: on
- * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 162-573-883
-```
-From a remote browser on the same network, check to make sure your webserver is working by going to `http://<YourPiIPAddress>:5000`. You should be able to see "Hello World" on the webpage.
-
 Yes I was able to run the Hello World example. The output webpage is below:
 
 <img src="img/flask_hello_world.png" alt="Flask Hello World" width=400>
 
-
 ### Storyboard
-
-Storyboard and/or use a Verplank diagram to design a speech-enabled device. (Stuck? Make a device that talks for dogs. If that is too stupid, find an application that is better than that.) 
 
 \*\***Post your storyboard and diagram here.**\*\*
 
-Write out what you imagine the dialogue to be. Use cards, post-its, or whatever method helps you develop alternatives or group responses. 
+I created a Smart Elevator that users can interact with using their voice. The different interactions that I considered include: changing the elevator music, controlling the floor numbers, and interacting with the elevator to solve riddles as a conversation starter. Because the time in an elevator is somewhat brief, the interaction scenarios are not generally long. Thus, I have considered these 3 different scenarios and provided storyboards, verplank diagrams, and dialogues for them.
+
+<img src="img/storyboard_1.png" alt="Storyboard 1">
+
+<img src="img/verplank_1.png" alt="Verplank 1">
+
+<img src="img/storyboard_2.png" alt="Storyboard 2">
+
+<img src="img/verplank_2.png" alt="Verplank 2">
+
+<img src="img/storyboard_3.png" alt="Storyboard 3">
+
+<img src="img/verplank_3.png" alt="Verplank 3">
 
 \*\***Please describe and document your process.**\*\*
 
-### Acting out the dialogue
+While I was thinking about scenarios for interaction in a SmartElevator, I considered what common activities in the elevator would be and arrived at: changing the elevator music, controlling the floor numbers, and talking with other people in the elevator. I also decided to start the interactions with the trigger word of "Ok Ele" so that the elevator was not *always* listening (privacy issues!). Also for crowded elevators, users would have to speak one at a time so the elevator could understand the user. Some of the benefits of voice commands in an elevator include contactless interaction (germ free!) and being good for crowded elevators so people don't have to shuffle around. Some of the other related ideas that I considered were having the elevator read the time out loud when asked, a "berserk mode" where all the buttons get pressed so users have to stop on every floor, and a 20 questions or jokes telling type game.
 
-Find a partner, and *without sharing the script with your partner* try out the dialogue you've designed, where you (as the device designer) act as the device you are designing.  Please record this interaction (for example, using Zoom's record feature).
+#### **Scenario 1**
+
+<img src="img/dialogue_1.png" alt="Dialogue 1">
+
+#### **Scenario 2**
+
+<img src="img/dialogue_2.png" alt="Dialogue 2">
+
+#### **Scenario 3**
+
+<img src="img/dialogue_3.png" alt="Dialogue 3">
+
+### Acting out the dialogue
 
 \*\***Describe if the dialogue seemed different than what you imagined when it was acted out, and how.**\*\*
 
+#### **Scenario 1**
+
+One thing that I didn't consider was if the user gave the trigger word and the command at the same time. Although this would minimize the interaction, it seems like it would be technically difficult to actually implement since the top-of-the-line voice assistant type devices on the market struggle with this too. Also, in practice it might be easier to have my implementation of the speech to text service (which has to be offline since the interaction is in an elevator where the WiFi is bad) use song numbers rather than song names since the numbers are easier to search for.
+
+[![Scenario 1 Acting](https://img.youtube.com/vi/wL8dA-8OuG4/0.jpg)](https://www.youtube.com/watch?v=wL8dA-8OuG4)
+
+#### **Scenario 2**
+
+One thing that I didn't consider was the usefulness of this idea when the elevator has a small number of floors available. In elevators with ~5 floors, it would be less useful than elevators with ~25 floors since there would be more overlaps on average. Also, if people are hurrying into the elevator and say something immediately after the last person, the speech to text service might have trouble distinguishing the floor number.
+
+[![Scenario 2 Acting](https://img.youtube.com/vi/tWba3nWImvc/0.jpg)](https://www.youtube.com/watch?v=tWba3nWImvc)
+
+#### **Scenario 3**
+
+One thing that I didn't consider was what would happen if the user's didn't get the riddle right. The humorous guess from the users that I talked with was that the elevator would refuse to let them out until they got the elevator. At the moment, my system would just not award them points and the daily score would not be incremented. Instead of a riddle, I might want to consider using a joke or icebreaker question to properly break the ice between people in the elevator.
+
+[![Scenario 3 Acting](https://img.youtube.com/vi/hBayXMhjXmo/0.jpg)](https://www.youtube.com/watch?v=hBayXMhjXmo)
+
 ### Wizarding with the Pi (optional)
-In the [demo directory](./demo), you will find an example Wizard of Oz project. In that project, you can see how audio and sensor data is streamed from the Pi to a wizard controller that runs in the browser.  You may use this demo code as a template. By running the `app.py` script, you can see how audio and sensor data (Adafruit MPU-6050 6-DoF Accel and Gyro Sensor) is streamed from the Pi to a wizard controller that runs in the browser `http://<YouPiIPAddress>:5000`. You can control what the system says from the controller as well!
 
 \*\***Describe if the dialogue seemed different than what you imagined, or when acted out, when it was wizarded, and how.**\*\*
+
+I ran a wizarding test with the demo code and was able to stream sensor data from the pi. This part was optional, but I will consider using an accelerometer or other sensor for something in the next part of the lab. One idea is to change the volume of the music or play/pause music based on the acceleration of the elevator. Also, I could use a [gesture sensor](https://www.adafruit.com/product/3595) to detect if the user wants to go up or down inside the elevator. Another sensor that might be interesting to use is a [distance sensor](https://www.adafruit.com/product/3595).
+
+<img src="img/wizarding_test.png" alt="Wizarding Test">
 
 # Lab 3 Part 2
 
