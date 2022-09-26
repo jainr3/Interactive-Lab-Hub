@@ -98,7 +98,7 @@ One thing that I didn't consider was the usefulness of this idea when the elevat
 
 #### **Scenario 3**
 
-One thing that I didn't consider was what would happen if the user's didn't get the riddle right. The humorous guess from the users that I talked with was that the elevator would refuse to let them out until they got the elevator. At the moment, my system would just not award them points and the daily score would not be incremented. Instead of a riddle, I might want to consider using a joke or icebreaker question to properly break the ice between people in the elevator.
+One thing that I didn't consider was what would happen if the user's didn't get the riddle right. The humorous guess from the users that I talked with was that the elevator would refuse to let them out until they got the riddle correct. At the moment, my system would just not award them points and the daily score would not be incremented. Instead of a riddle, I might want to consider using a joke or icebreaker question to properly break the ice between people in the elevator.
 
 [![Scenario 3 Acting](https://img.youtube.com/vi/hBayXMhjXmo/0.jpg)](https://www.youtube.com/watch?v=hBayXMhjXmo)
 
