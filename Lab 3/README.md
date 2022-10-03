@@ -264,8 +264,6 @@ For this one, I had to shoot it right outside the elevator because the internet 
 
 [![Scenario 4 Acting](https://img.youtube.com/vi/B1mo2Xx4dLc/0.jpg)](https://www.youtube.com/watch?v=B1mo2Xx4dLc)
 
-
-
 <img src="img/scenario4_4_ppl.png" alt="4 people recognized" width=400>
 
 
@@ -305,7 +303,3 @@ I probably need more integrated visual cues that are physically connected to my 
 * https://stackoverflow.com/questions/53691128/how-to-start-recording-when-something-is-said-python
 * https://github.com/Uberi/speech_recognition
 * https://stackoverflow.com/questions/41359535/python-speechrecognition-attributeerror-exit-with-sr-microphone
-
-#TODO
--film the 4 interaction videos (scripted version)
--tape, paper sign for now playing / floor number, and tripod
