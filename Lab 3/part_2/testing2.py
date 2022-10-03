@@ -15,7 +15,7 @@ from adafruit_apds9960.apds9960 import APDS9960
 # This is the scripted version of the interaction that makes it easier to show what it might look like if the STT was more reliable
 
 # Change this if the hardware card changes for the speaker (check using `arecord -l`)
-CARD = "2"
+CARD = "1"
 with open('jokes.json', 'r') as f:
     JOKES = json.load(f)
 
@@ -110,7 +110,7 @@ def scenario_4():
     input("Press enter to go to next command\n")
     text_to_speech("Ok got it.")
 
-#scenario_1()
+scenario_1()
 #scenario_2()
 #scenario_3()
 #scenario_4()
