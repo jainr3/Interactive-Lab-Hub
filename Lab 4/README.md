@@ -250,6 +250,8 @@ In the process of working with some of the code, I had to manually install many 
 
 ### Interacting with the rough prototype
 
+A minor note for the video is that the buzzing sound for an unsuccessful unlock attempt is not loud enough for the video to pick it up but the user was able to hear it when testing.
+
 [![Part 1 (D) Interacting with the Rough Prototype](https://img.youtube.com/vi/eQd_Jj52FrU/0.jpg)](https://www.youtube.com/watch?v=eQd_Jj52FrU)
 
 
