@@ -258,43 +258,150 @@ A minor note for the video is that the buzzing sound for an unsuccessful unlock 
 LAB PART 2
 
 ### Part 2
-
-Following exploration and reflection from Part 1, complete the "looks like," "works like" and "acts like" prototypes for your design, reiterated below.
-
 ### Part E (Optional)
 ### Servo Control with Joystick
 
-In the class kit, you should be able to find the [Qwiic Servo Controller](https://www.sparkfun.com/products/16773) and [Micro Servo Motor SG51](https://www.adafruit.com/product/2201). The Qwiic Servo Controller will need external power supply to drive, which are included in your kit. Connect the servo controller to the miniPiTFT through qwiic connector and connect the external battery to the 2-Pin JST port (ower port) on the servo controller. Connect your servo to channel 2 on the controller, make sure the brown is connected to GND and orange is connected to PWM.
+I briefly experimented with the servo, but ultimately decided not to incorporate it in my final design.
 
-<img src="Servo_Setup.jpg" width="400"/>
-
-In this exercise, we will be using the nice [ServoKit library](https://learn.adafruit.com/16-channel-pwm-servo-driver/python-circuitpython) developed by Adafruit! We will continue to use the `circuitpython` virtual environment we created. Activate the virtual environment and make sure to install the latest required libraries by running:
-
-```
-(circuitpython) pi@ixe00:~/Interactive-Lab-Hub/Lab 4 $ pip3 install -r requirements.txt
-```
-
-A servo motor is a rotary actuator or linear actuator that allows for precise control of angular or linear position. The position of a servo motor is set by the width of an electrical pulse, that is, we can use PWM (pulse-width modulation) to set and control the servo motor position. You can read [this](https://learn.adafruit.com/adafruit-arduino-lesson-14-servo-motors/servo-motors) to learn a bit more about how exactly a servo motor works.
-
-Now that you have a basic idea of what a servo motor is, look into the script `qwiic_servo_example.py` we provide. In line 14, you should see that we have set up the min_pulse and max_pulse corresponding to the servo turning 0 - 180 degree. Try running the servo example code now and see what happens:
-
-```
-(circuitpython) pi@ixe00:~/Interactive-Lab-Hub/Lab 4 $ python servo_test.py
-```
-
-It is also possible to control the servo using the sensors mentioned in as in part A and part B, and/or from some of the buttons or parts included in your kit, the simplest way might be to chain Qwiic buttons to the other end of the Qwiic OLED. Like this:
-
-<p align="center"> <img src="chaining.png"  width="200" ></p>
-
-You can then call whichever control you like rather than setting a fixed value for the servo. For more information on controlling Qwiic devices, Sparkfun has several python examples, such as [this](https://learn.sparkfun.com/tutorials/qwiic-joystick-hookup-guide/all#python-examples).
-
-We encourage you to try using these controls, **while** paying particular attention to how the interaction changes depending on the position of the controls. For example, if you have your servo rotating a screen (or a piece of cardboard) from one position to another, what changes about the interaction if the control is on the same side of the screen, or the opposite side of the screen? Trying and retrying different configurations generally helps reveal what a design choice changes about the interaction -- _make sure to document what you tried_!
+<img src="img/part_e_test.png" width="400"/>
 
 ### Part F
 ### Record
 
-Document all the prototypes and iterations you have designed and worked on! Again, deliverables for this lab are writings, sketches, photos, and videos that show what your prototype:
-* "Looks like": shows how the device should look, feel, sit, weigh, etc.
-* "Works like": shows what the device can do
-* "Acts like": shows how a person would interact with the device
+In the following sections, I detail what my capacitive and now gesture-based lock "looks like", "works like", and "acts like". The place of interaction for the apartment residents is still outside a locked apartment door and the prototype is positioned above the keyhole part of the door. The main reasoning for the addition of the gesture sensor was added security due to increased number of combinations for the patterns.
+
+<img src="img/final_lock_on_door.jpg" alt="Final Lock on Door" width="300"/>
+
+#### Looks like & Works like: Revised sketch, verplank diagram, and physical design
+
+For part 2 of the lab, I revised the initial sketch, verplank diagram and physical design to account for some of the findings from part 1. The final sketch shows how a user can now use a gesture sensor in addition to some capacitive pads to input a combination to the lock. This is very similar to the popular Master Lock that uses directional input. Also, the physical buttons on the board serve as the "enter" button once the user wishes to test the pattern that has been input.
+
+<img src="img/directional_lock.png" alt="Final Sketch" width="200"/>
+
+
+The verplank diagram also reflects the addition of these sensors and how a user might interact with the device. The addition of the gesture sensor also means that the Neopixel LEDs will also flicker in a certain order based on the direction of the gesture (similar to the way the corresponding LED lights up when a capacitive pad is pressed). Finally, the design shows what the device would physically look like with the addition of the gesture sensor and the reorganization of the capacitive pads.
+
+From these diagrams, I have illustrated how the device should physically look, feel, sit, and weigh. The device is square shaped and will be as small as possible. The device does not feel out of place on the door and does not physically extrude too far out in front of the door. Finally, the device will sit above the keyhole on the door and will not weigh too much so that it can be attached to the front of the door (the final device weighed about 80 grams).
+
+<img src="img/part_f_sketch.png" alt="Final Sketch"/>
+
+<img src="img/part_f_verplank.png" alt="Final Verplank Diagram"/>
+
+<img src="img/part_f_design.png" alt="Final Design"/>
+
+#### Looks like: Laser Cut Box Sketch
+
+I used [Adobe Illustrator](https://www.adobe.com/products/illustrator.html) and [makercase.com](https://en.makercase.com/#/basicbox) to create a laser cut diagram for the capacative/gesture lock box. The box generation website produced the following [sketch](./part2/box.svg) which I took and imported into Adobe Illustrator. Then, I created a circular & rectangular shape on the front face of the box to accomodate the Circuit Playground Express and Gesture sensor. I also added a small notch so that the Stemma QT cable from the interior of the housing could be fed to these devices. 
+
+The dimensions of the box are 4 inches x 4 inches on the face and a 1 inch depth. The Adafruit Circuit Playground Express is placed into a 2 inch circular cutout on the front face with a 1/4 inch square cutout for the wires. Also, the gesture sensor is 3/4 inches height by 1 inch width and it also has the 1/4 inch square cutout for the wires.
+
+The final Illustrator sketch is located [here](./part2/box_laser_cut.ai) and an image is below (zoom into the image to see the lines).
+
+<img src="img/adobe_illustrator_sketch.png" alt="AI Sketch"/>
+
+After I had the sketch, I sent the file to the laser cutter and then I joined the pieces together with some hot glue. I left the back plate loose so that I could make modifications to the interior contents.
+
+<img src="img/laser_cut_box.jpg" alt="Laser cut box"/>
+
+#### Works like: Inputs (capacitive touch sensor, buttons, I2C Gesture sensor) 
+
+Once again, the input sensors are intended to take user input for the pattern of the combination lock. For this part, I expanded the pattern beyond the basic capacitive touch to also include gestures.
+
+I placed the two input sensors into the box from the back and taped them to the front plate so they would not move around. Additionally, I put the battery pack inside to make sure that everything would fit properly. 
+
+<img src="img/putting_sensors_in.jpg" alt="Putting sensors in"/>
+
+<img src="img/everything_fits_inside.jpg" alt="Everything fits inside"/>
+
+The capacitance sensor was tested in part 1 so there was little modification required. The only thing that I changed was the location and amount of capacitive pads so that I could connect the gesture sensor (more in the next paragraph). Also, the use of the Circuit Playground Express's on-board buttons saves a capacitive pad so I no longer have to use a capacitive pad as the "enter" button. Both of the on-board buttons serve as the "enter" buttons for simplicity.
+
+Connecting the [gesture sensor](https://www.adafruit.com/product/3595) to the Adafruit Circuit Playground Express was the most challenging part of the lab. Because the Circuit Playground Express does not have a Stemma QT connector there is no way to directly use the plug-and-play wires. Instead, I had to use the Circuit Playground Express's [I2C pins](https://learn.adafruit.com/adafruit-circuit-playground-express/circuitpython-i2c) (see image below).
+
+<img src="img/circuitpython_Essentials_I2C_CPX_bb.png" alt="I2C Connections Diagram" width="400"/>
+
+As seen in the images below, I first tried to form a connection to these I2C pins by inserting the wire from the front face of the old model (just for testing), and then by looping a wire into the holes from the back face and covering it with capacitive tape on both sides.
+
+<img src="img/gesture_sensor_test_1.jpg" alt="Gesture Sensor Test 1" width="500"/>
+
+<img src="img/I2C_connections_circuit_playground.png" alt="I2C Connections" width="400"/>
+<img src="img/I2C_connections2_circuit_playground.png" alt="I2C Connections" width="440"/>
+
+<img src="img/I2C_connections3_circuit_playground.png" alt="I2C Connections" width="500"/>
+
+The wire looping was not reliable at all and caused many issues with the device powering on and off because some of the connections were faultly. A short video of me testing the Gesture sensor is shown below. I had to place the box on its side to get a better connection for the I2C pins. However, most of my tests with this configuration still resulted in the following error message which showed that the Gesture sensor could not be read.
+
+[![Part 2 (F) Testing the Gesture Sensor (Wire Looping)](https://img.youtube.com/vi/xA3KoDVLxTU/0.jpg)](https://www.youtube.com/watch?v=xA3KoDVLxTU)
+
+<img src="img/cannot_find_gesture_sensor.png" alt="I2C Connections" width="500"/>
+
+Instead of this method, I opted to solder the connections to make them more reliable (see images below). A short video of the gesture sensor working (post-soldering) is in the next section.
+
+<img src="img/soldered_connections1.jpg" alt="Soldered 1" width="500"/>
+<img src="img/soldered_connections2.jpg" alt="Soldered 2" width="500"/>
+
+
+#### Works like: Outputs (Neopixel LEDs, speaker/buzzer)
+
+The output mechanisms for the device include the neopixel LEDs and the speaker/buzzer which serve to give feedback to the user about their selections for the lock's pattern. The Neopixel LEDs light up under different circumstances. First, it will light up all red is when the lock is currently locked and the user is not interacting with it. Second, on capacitive touch pad input presses the corresponding Neopixel LED will light up green indicating to the user that their input was recognized (this does not signify that that individual pad press was correct). Finally, when the user gestures (up/down/left/right), the 10 Neopixel LEDs will light up in a specific pattern based on the direction. For example, if the gesture was upwards, the bottom most LEDs will flash green first, followed by the ones above those, until the topmost ones. This gives the visual effect of the direction on the LEDs and serves as a nice way to show the direction of the gesture on the LEDs. Please see below for the video showing the gesture sensor functionality. Also, the Circuit Playground Express's on-board speaker (which really serves as a buzzer) is able to play a sharp tone when the entered combination for the lock is entered incorrectly (see part 1 behind the scenes video).
+
+[![Part 2 (F) Testing the Gesture Sensor (Post-soldering)](https://img.youtube.com/vi/FbCbvw8c-Ao/0.jpg)](https://www.youtube.com/watch?v=FbCbvw8c-Ao)
+
+#### Works like: Installing CircuitPython Libraries & Running Other Sensor Tests
+
+Another challenge for the lab was figuring out what sensors that were [compatible for use with the Adafruit Circuit Playground Express](https://docs.circuitpython.org/projects/bundle/en/latest/drivers.html). One of my early ideas for part 2 of the lab was to use a distance sensor to detect if there was a user trying to unlock the device and automatically switch from a rainbow pattern (idle mode) to all red (locked state). Unfortunately, the [VL53L3CX Multi-Distance sensor](https://www.sparkfun.com/products/17072) was not on the approved list of drivers for use with the Circuit Playground Express and when I tried some of the similar libraries (see image below and [1](https://github.com/sparkfun/Qwiic_VL53L1X_Py), [2](https://qwiic-vl53l1x-py.readthedocs.io/en/latest/index.html)) for other time of flight sensors, I received an error stating that I was using the wrong sensor. 
+
+<img src="img/adafruit_libraries.png" alt="Libraries" width="500"/>
+
+An alternate solution that I considered was using the Circuit Playground Express's microphone to try to detect noise and use that as an indication of a user trying to unlock the door. This sensor test worked but from a design perspective, it would not always be a good indicator of whether a person is unlocking the door (since if a person is alone, they might not speak / make noise). Another sensor that I tried to use was the light sensor where a lower light level might indicate that the user was trying to unlock the door. This was also messy because light levels would have to be calibrated and a person passing by might cause the threshold to be hit (which is not terrible but still not desirable). The final idea was to use a separate proximity sensor which has the added bonus of being a part of the gesture sensor which has libraries that work with the Circuit Playground Express. Although individually both the gesture sensing and proximity sensing work as expected, using both of them simultaneously did not seem to work on my device (kept receiving a Memory allocation error). In addition, the logic to incorporate this would have been very complicated to implement especially since asynchronous operations are not possible. Thus, I had to drop this feature from the final design.
+
+#### Works like: Final Code
+
+The final code for the lab is located [here](./part2/code.py). There are a number of components to the code which include things like lighting up the Neopixel LEDs, checking for capacitive input or gestures, and checking if the entered pattern is correct.
+
+In addition, the final libraries that I had to install onto the Circuit Playground Express are shown below. They are mainly used for the gesture sensor and the neopixel LEDs. They can be obtained by downloading the [CircuitPython Community Library Bundle](https://circuitpython.org/libraries) and seeing which ones are [compatible](https://docs.circuitpython.org/projects/bundle/en/latest/drivers.html) with the board.
+
+<img src="img/final_libraries.png" alt="Libraries" width="500"/>
+
+#### Works like and Acts like: Behind-the-scenes testing
+
+A short video of some of the behind-the-scenes testing is shown below. Note that the "correct" passcode is "632UDT" which translates to hitting pad 6, 3, 2 then gesturing up, down, and finally hitting pad T (named T because it corresponds to the TX pin on the board). When the correct pattern is entered, the Neopixel LEDs light up green and when the wrong one is entered, they light up red and the buzzer sounds as expected. A minor note is that after the code has been checked the lights flash in a rainbow pattern to indicate a reset.
+
+[![Part 2 (F) Acts like: Behind-the-scenes testing](https://img.youtube.com/vi/kGwY8doc3-k/0.jpg)](https://www.youtube.com/watch?v=kGwY8doc3-k)
+
+#### Acts like: User testing
+
+A short video of some of the user tests is shown below. As in part 1, the buzzer is too faint to be heard on camera but the user could hear it.
+
+[![Part 2 (F) Acts like: User testing](https://img.youtube.com/vi/lcgzOz6mI1g/0.jpg)](https://www.youtube.com/watch?v=lcgzOz6mI1g)
+
+I also expanded my original use case for an apartment to include any other setting in which a door lock is required. A short video for this is below.
+
+[![Part 2 (F) Acts like: User testing - Alternate Setting](https://img.youtube.com/vi/ye8ruO9B_iE/0.jpg)](https://www.youtube.com/watch?v=ye8ruO9B_iE)
+
+
+### References
+
+* https://docs.circuitpython.org/projects/bundle/en/latest/drivers.html#distance-sensors
+
+* https://docs.circuitpython.org/projects/vl53l1x/en/latest/
+
+* https://learn.sparkfun.com/tutorials/qwiic-distance-sensor-vl53l1x-vl53l4cd-hookup-guide/all
+
+* https://docs.circuitpython.org/projects/apds9960/en/latest/examples.html#gesture-example
+
+* https://github.com/adafruit/Adafruit_CircuitPython_APDS9960/blob/main/examples/apds9960_gesture_simpletest.py
+
+* https://web.cecs.pdx.edu/~gerry/class/IB2021/programming/external/i2c/
+
+* https://docs.circuitpython.org/projects/simpleio/en/latest/api.html
+
+* https://learn.adafruit.com/adafruit-circuit-playground-express/circuitpython-i2c
+
+* https://learn.adafruit.com/adafruit-circuit-playground-express/circuitpython-audio-out
+
+* https://learn.adafruit.com/adafruit-circuit-playground-express/playground-light-sensor
+
+* https://learn.adafruit.com/adafruit-circuit-playground-express/circuitpython-libraries
+
+* https://en.makercase.com/#/basicbox
 
