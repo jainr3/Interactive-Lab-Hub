@@ -93,11 +93,23 @@ def main():
                 It finds the loudest amplitued and its coresponding bin  with `argmax()`. 
                 The uses the index to look up the Freqeucny value.
                 '''
-
+                # Threshold Detection
+                if volume > 85:
+                    print("The volume is greater than 85:", volume)
+                                    
+                # Running Average
+                if len(VolumeHistory) != 0:
+                    print("The volume running average is", np.sum(VolumeHistory) / len(VolumeHistory))
+                
+                # Peak Detection
+                if len(VolumeHistory) > 2:
+                    peak_threshold = 5
+                    if (VolumeHistory[-3] - VolumeHistory[-2] < -peak_threshold) and (VolumeHistory[-2] - VolumeHistory[-1] > peak_threshold):
+                        print("Peak detected!")
 
                 LoudestFrequency = frequencies[amplitudes.argmax()]
                 
-                print("Loudest Frqeuncy:",LoudestFrequency)
+                print("Loudest Frequency:",LoudestFrequency)
                 print("RMS volume:",volumneSlow)
                 print("Volume Change:",volumechange)
                 
@@ -106,6 +118,6 @@ def main():
 
 if __name__ == '__main__':
     main()
-    print("Something happend with the audio example. Stopping!") 
+    print("Something happened with the audio example. Stopping!") 
 
 
