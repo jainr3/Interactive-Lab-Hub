@@ -1,7 +1,6 @@
 # Observant Systems
 
-**NAMES OF COLLABORATORS HERE**
-
+**NAMES OF COLLABORATORS HERE** Rahul Jain
 
 For lab this week, we focus on creating interactive systems that can detect and respond to events or stimuli in the environment of the Pi, like the Boat Detector we mentioned in lecture. 
 Your **observant device** could, for example, count items, find objects, recognize an event or continuously monitor a room.
@@ -38,186 +37,108 @@ C) [Flight test](#part-c)
 D) [Reflect](#part-d)
 
 ---
+### Lab Prep
+
+I did the listening exercise and the results are [here](./ListeningExercise.md).
 
 ### Part A
 ### Play with different sense-making algorithms.
 
 #### OpenCV
-A more traditional method to extract information out of images is provided with OpenCV. The RPI image provided to you comes with an optimized installation that can be accessed through python. We included 4 standard OpenCV examples: contour(blob) detection, face detection with the ``Haarcascade``, flow detection (a type of keypoint tracking), and standard object detection with the [Yolo](https://pjreddie.com/darknet/yolo/) darknet.
-
-Most examples can be run with a screen (e.g. VNC or ssh -X or with an HDMI monitor), or with just the terminal. The examples are separated out into different folders. Each folder contains a ```HowToUse.md``` file, which explains how to run the python example. 
-
-The following command is a nicer way you can run and see the flow of the `openCV-examples` we have included in your Pi. Instead of `ls`, the command we will be using here is `tree`. [Tree](http://mama.indstate.edu/users/ice/tree/) is a recursive directory colored listing command that produces a depth indented listing of files. Install `tree` first and `cd` to the `openCV-examples` folder and run the command:
-
-```shell
-pi@ixe00:~ $ sudo apt install tree
-...
-pi@ixe00:~ $ cd openCV-examples
-pi@ixe00:~/openCV-examples $ tree -l
-.
-├── contours-detection
-│   ├── contours.py
-│   └── HowToUse.md
-├── data
-│   ├── slow_traffic_small.mp4
-│   └── test.jpg
-├── face-detection
-│   ├── face-detection.py
-│   ├── faces_detected.jpg
-│   ├── haarcascade_eye_tree_eyeglasses.xml
-│   ├── haarcascade_eye.xml
-│   ├── haarcascade_frontalface_alt.xml
-│   ├── haarcascade_frontalface_default.xml
-│   └── HowToUse.md
-├── flow-detection
-│   ├── flow.png
-│   ├── HowToUse.md
-│   └── optical_flow.py
-└── object-detection
-    ├── detected_out.jpg
-    ├── detect.py
-    ├── frozen_inference_graph.pb
-    ├── HowToUse.md
-    └── ssd_mobilenet_v2_coco_2018_03_29.pbtxt
-```
-
-The flow detection might seem random, but consider [this recent research](https://cseweb.ucsd.edu/~lriek/papers/taylor-icra-2021.pdf) that uses optical flow to determine busy-ness in hospital settings to facilitate robot navigation. Note the velocity parameter on page 3 and the mentions of optical flow.
-
-Now, connect your webcam to your Pi and use **VNC to access to your Pi** and open the terminal. Use the following command lines to try each of the examples we provided:
-(***it will not work if you use ssh from your laptop***)
-
-```
-pi@ixe00:~$ cd ~/openCV-examples/contours-detection
-pi@ixe00:~/openCV-examples/contours-detection $ python contours.py
-...
-pi@ixe00:~$ cd ~/openCV-examples/face-detection
-pi@ixe00:~/openCV-examples/face-detection $ python face-detection.py
-...
-pi@ixe00:~$ cd ~/openCV-examples/flow-detection
-pi@ixe00:~/openCV-examples/flow-detection $ python optical_flow.py 0 window
-...
-pi@ixe00:~$ cd ~/openCV-examples/object-detection
-pi@ixe00:~/openCV-examples/object-detection $ python detect.py
-```
 
 **\*\*\*Try each of the following four examples in the `openCV-examples`, include screenshots of your use and write about one design for each example that might work based on the individual benefits to each algorithm.\*\*\***
 
+### Contour Detection
+
+I was able to run the contour detection script on the Queensboro Bridge and it seemed to pick up many of the contours. It wasn't perfect but did a decent job. In general, contour detection is useful for identifying the boundaries of different shapes. One design that contour detection could be used for is separating coins from dollar bills. The coins would have a circular shape while dollar bills would be rectangles (or squares if folded).
+
+<img src="img/contours_test.png" alt="Contours" width="400"/>
+
+### Face Detection
+
+I was able to run the face detection script on myself and it seemed to pick up my face and also thought I had multiple eyes (green boxes). In general face detection can be applied to many use cases where one wants to check whether a person is present or not. One design that face detection could be used for is a smart security system where it would notify the homeowner when a face was detected so they could make a decision whether or not to let them in.
+
+<img src="img/face_detection_test.png" alt="Face Detection" width="400"/>
+
+### Optical Flow 
+
+I was able to run the optical flow test where it traced different points as I moved around the screen. In general this is good for figuring out how objects are moving in a space and tracking them. One design that this could be used for is a movie/video stabilization device which tries to reorient the camera position based on how something in the shot is moving / shaking. So for example if the person holding the camera is running, the image might be shaky so this could help stabilize the image. Another example could be detecting traffic flow.
+
+<img src="img/optical_flow_test.png" alt="Optical Flow" width="400"/>
+
+### Object Detection
+
+I was able to run the object detection test where it drew a bounding box around my computer mouse. In general this is good for figuring out what and how many of different objects appear in the image. One design that this could be used for is identifying how busy a particular parking lot is. For example, if there are a lot of cars parked then we know that it is fairly busy.
+
+<img src="img/detected_test.png" alt="Object Detection" width="400"/>
+
 #### Filtering, FFTs, and Time Series data. 
-Additional filtering and analysis can be done on the sensors that were provided in the kit. For example, running a Fast Fourier Transform over the IMU or Microphone data stream could create a simple activity classifier between walking, running, and standing.
-
-To get the microphone working we need to install two libraries. `PyAudio` to get the data from the microphone, `sciPy` to make data analysis easy, and the `numpy-ringbuffer` to keep track of the last ~1 second of audio. 
-Pyaudio needs to be installed with the following comand:
-``sudo apt install python3-pyaudio``
-SciPy is installed with 
-``sudo apt install python3-scipy`` 
-
-Lastly we need numpy-ringbuffer, to make continues data anlysis easier.
-``pip install numpy-ringbuffer``
-
-Now try the audio processing example:
-* Find what ID the micrpohone has with `python ListAvalibleAudioDevices.py`
-    Look for a device name that includes `USB` in the name.
-* Adjust the variable `DEVICE_INDEX` in the `ExampleAudioFFT.py` file.
-    See if you are getting results printed out from the microphone. Try to understand how the code works.
-    Then run the file by typing `python ExampleAudioFFT.py`
-
-
-
-Using the microphone, try one of the following:
 
 **1. Set up threshold detection** Can you identify when a signal goes above certain fixed values?
 
+Yes. I was able to set a threshold on the volume to print a line whenever it was above 85 (which I found from being silent in the room). Thus whenever I spoke, the volume would increase and the threshold would be hit.
+
+```
+# Threshold Detection
+if volume > 85:
+    print("The volume is greater than 85:", volume)
+```
+
 **2. Set up a running averaging** Can you set up a running average over one of the variables that are being calculated.[moving average](https://en.wikipedia.org/wiki/Moving_average)
+
+Yes. I was able to print out the running average of the volume. This is simply the sum of the volumes / number of volume points.
+
+```
+# Running Average
+if len(VolumeHistory) != 0:
+    print("The volume running average is", np.sum(VolumeHistory) / len(VolumeHistory))
+```
 
 **3. Set up peak detection** Can you identify when your signal reaches a peak and then goes down?
 
-For technical references:
+Yes. I was able to print out a line whenever a peak occured in the volume. I simply looked at three points and if the center measurement was higher than both the left and right by some threshold, I considered it to be a peak. There are probably more advanced ways to do this, but this simple approximation seems to work fine.
 
-* Volume Calculation with [RootMeanSqare](https://en.wikipedia.org/wiki/Root_mean_square)
-* [RingBuffer](https://en.wikipedia.org/wiki/Circular_buffer)
-* [Frequency Analysis](https://en.wikipedia.org/wiki/Fast_Fourier_transform)
-
+```
+# Peak Detection
+if len(VolumeHistory) > 2:
+    peak_threshold = 5
+    if (VolumeHistory[-3] - VolumeHistory[-2] < -peak_threshold) and (VolumeHistory[-2] - VolumeHistory[-1] > peak_threshold):
+        print("Peak detected!")
+```
 
 **\*\*\*Include links to your code here, and put the code for these in your repo--they will come in handy later.\*\*\***
 
+The code for these tests is located [here](./ExampleAudioFFT.py) and a short video is below.
+
+[![Part 1 (A) Filtering, FFTs, and Time Series Data Test](https://img.youtube.com/vi/r0I9Pp5WC_s/0.jpg)](https://www.youtube.com/watch?v=r0I9Pp5WC_s)
+
 ### (Optional Reading) Introducing Additional Concepts
-The following sections ([MediaPipe](#mediapipe) and [Teachable Machines](#teachable-machines)) are included for your own optional learning. **The associated scripts will not work on Fall 2022's Pi Image, so you can move onto part B.** However, you are welcome to try it on your personal computer. If this functionality is desirable for your lab or final project, we can help you get a different image running the last OS and version of python to make the following code work.
+
+I ended up bricking my Pi's SD card... so I decided to install the old RPi image which I found [here](https://github.com/FAR-Lab/Interactive-Lab-Hub/blob/Spring2021/Lab%202/prep.md).
+
+<img src="img/bricked_pi.jpg" alt="Bricked Pi" width="400"/>
 
 #### MediaPipe
 
-A more recent open source and efficient method of extracting information from video streams comes out of Google's [MediaPipe](https://mediapipe.dev/), which offers state of the art face, face mesh, hand pose, and body pose detection.
+I was able to run the [MediaPipe](https://mediapipe.dev/) test (screenshot and video below).
 
-![Alt Text](mp.gif)
+<img src="img/mediapipe_test.png" alt="MediaPipe Test" width="400"/>
 
-To get started, create a new virtual environment with special indication this time:
+[![Part 1 (A) MediaPipe Test](https://img.youtube.com/vi/vpBuVtDPl2I/0.jpg)](https://www.youtube.com/watch?v=vpBuVtDPl2I)
 
-```
-pi@ixe00:~ $ virtualenv mpipe --system-site-packages
-pi@ixe00:~ $ source mpipe/bin/activate
-(mpipe) pi@ixe00:~ $ 
-```
+**\*\*\*Consider how you might use this position based approach to create an interaction, and write how you might use it on either face, hand or body pose tracking.\*\*\***
 
-and install the following.
-
-```
-...
-(mpipe) pi@ixe00:~ $ sudo apt install ffmpeg python3-opencv
-(mpipe) pi@ixe00:~ $ sudo apt install libxcb-shm0 libcdio-paranoia-dev libsdl2-2.0-0 libxv1  libtheora0 libva-drm2 libva-x11-2 libvdpau1 libharfbuzz0b libbluray2 libatlas-base-dev libhdf5-103 libgtk-3-0 libdc1394-22 libopenexr25
-(mpipe) pi@ixe00:~ $ pip3 install mediapipe-rpi3 pyalsaaudio
-```
-
-Each of the installs will take a while, please be patient. After successfully installing mediapipe, connect your webcam to your Pi and use **VNC to access to your Pi**, open the terminal, and go to Lab 5 folder and run the hand pose detection script we provide:
-(***it will not work if you use ssh from your laptop***)
-
-
-```
-(mpipe) pi@ixe00:~ $ cd Interactive-Lab-Hub/Lab\ 5
-(mpipe) pi@ixe00:~ Interactive-Lab-Hub/Lab 5 $ python hand_pose.py
-```
-
-Try the two main features of this script: 1) pinching for percentage control, and 2) "[Quiet Coyote](https://www.youtube.com/watch?v=qsKlNVpY7zg)" for instant percentage setting. Notice how this example uses hardcoded positions and relates those positions with a desired set of events, in `hand_pose.py` lines 48-53. 
-
-~~\*\*\*Consider how you might use this position based approach to create an interaction, and write how you might use it on either face, hand or body pose tracking.\*\*\*~~
-
-(You might also consider how this notion of percentage control with hand tracking might be used in some of the physical UI you may have experimented with in the last lab, for instance in controlling a servo or rotary encoder.)
-
-
+One idea is to make a rock paper scissors game using hand tracking. Using 2 camera inputs, I could possibly run the mediapipe script to detect which hand shape the players are making and output a decision.
 
 #### Teachable Machines
-Google's [TeachableMachines](https://teachablemachine.withgoogle.com/train) might look very simple. However, its simplicity is very useful for experimenting with the capabilities of this technology.
 
-![Alt Text](tm.gif)
+I was able to run the [TeachableMachines](https://teachablemachine.withgoogle.com) test (video below)
 
-To get started, create and activate a new virtual environment for this exercise with special indication:
+[![Part 1 (A) Teachable Machines Test](https://img.youtube.com/vi/gvn3inwG-9E/0.jpg)](https://www.youtube.com/watch?v=gvn3inwG-9E)
 
-```
-pi@ixe00:~ $ virtualenv tmachine --system-site-packages
-pi@ixe00:~ $ source tmachine/bin/activate
-(tmachine) pi@ixe00:~ $ 
-```
+**\*\*\*Whether you make your own model or not, include screenshots of your use of Teachable Machines, and write how you might use this to create your own classifier. Include what different affordances this method brings, compared to the OpenCV or MediaPipe options.\*\*\***
 
-After activating the virtual environment, install the requisite TensorFlow libraries by running the following lines:
-```
-(tmachine) pi@ixe00:~ $ cd Interactive-Lab-Hub/Lab\ 5
-(tmachine) pi@ixe00:~ Interactive-Lab-Hub/Lab 5 $ sudo chmod +x ./teachable_machines.sh
-(tmachine) pi@ixe00:~ Interactive-Lab-Hub/Lab 5 $ ./teachable_machines.sh
-``` 
-
-This might take a while to get fully installed. After installation, connect your webcam to your Pi and use **VNC to access to your Pi**, open the terminal, and go to Lab 5 folder and run the example script:
-(***it will not work if you use ssh from your laptop***)
-
-```
-(tmachine) pi@ixe00:~ Interactive-Lab-Hub/Lab 5 $ python tm_ppe_detection.py
-```
-
-
-(**Optionally**: You can train your own model, too. First, visit [TeachableMachines](https://teachablemachine.withgoogle.com/train), select Image Project and Standard model. Second, use the webcam on your computer to train a model. For each class try to have over 50 samples, and consider adding a background class where you have nothing in view so the model is trained to know that this is the background. Then create classes based on what you want the model to classify. Lastly, preview and iterate, or export your model as a 'Tensorflow' model, and select 'Keras'. You will find an '.h5' file and a 'labels.txt' file. These are included in this labs 'teachable_machines' folder, to make the PPE model you used earlier. You can make your own folder or replace these to make your own classifier.)
-
-~~**\*\*\*Whether you make your own model or not, include screenshots of your use of Teachable Machines, and write how you might use this to create your own classifier. Include what different affordances this method brings, compared to the OpenCV or MediaPipe options.\*\*\***~~
-
-
-*Don't forget to run ```deactivate``` to end the Teachable Machines demo, and to reactivate with ```source tmachine/bin/activate``` when you want to use it again.*
-
+The teachable machines modeling allows for image recognition of arbitrary items based on previous items. OpenCV tries to use things like contour detection, face detection, flow detection, and object detection to identify whether things appear in the camera image but it cannot easily tell you what those things are. Similarly, MediaPipe enables face, face mesh, hand pose, and body pose detection but again can't really identify the difference between two faces for example because it is looking at the structure.
 
 ### Part B
 ### Construct a simple interaction.
@@ -229,12 +150,26 @@ This might take a while to get fully installed. After installation, connect your
 
 **\*\*\*Describe and detail the interaction, as well as your experimentation here.\*\*\***
 
+Before I decided on my interaction, I did some experimentation on recognizing different poker chips to see if the TeachableMachines classification would work (which it did). The keras file for the TeachableMachines classifier is [here](./models/blue_versus_red_keras.zip).
+
+<img src="img/blue_vs_red.png" alt="Blue Versus Red"/>
+
+### Wizard of Odds
+
+The model that I picked was the TeachableMachines classification. The interaction that I chose was a group of people playing the card game blackjack. The goal for the interaction is to have a device (called the Wizard of Odds) calculate recommended actions based on what cards the player has and what card the dealer is showing. The TeachableMachines classifier will automatically recognize the number that each card represents and will learn to recognize them regardless of suite. Also, the device should signal the player with a recommended action through an LED strip or voice output. The Contextual Interaction Design Tool sheet is filled out below.
+
+<img src="img/part_b_tool.png" alt="Contextual Interaction Design Tool"/>
+
+<img src="img/part_b_storyboard.png" alt="Storyboard"/>
+
+<img src="img/part_b_verplank.png" alt="Verplank Diagram"/>
+
 ### Part C
 ### Test the interaction prototype
 
 Now flight test your interactive prototype and **note down your observations**:
 For example:
-1. When does it what it is supposed to do?
+1. When does it do what it is supposed to do?
 1. When does it fail?
 1. When it fails, why does it fail?
 1. Based on the behavior you have seen, what other scenarios could cause problems?
@@ -244,6 +179,16 @@ For example:
 1. How bad would they be impacted by a miss classification?
 1. How could change your interactive system to address this?
 1. Are there optimizations you can try to do on your sense-making algorithm.
+
+For the first test, I tried to do a two versus ten classifier. When I was capturing image samples, I rotated the cards so that it would be able to understand different orientations and capture that in the model. I also used all 4 variations of 2's and 4 variations of 10's. I didn't however include a background class which would be helpful for the future. A short video is below. The keras file for the TeachableMachines classifier is [here](./models/two_versus_ten_keras.zip) and tensorflowlite version is [here](./models/two_versus_ten_tflite.zip). I exported the tensorflowlite version as well because I saw [here](https://www.tensorflow.org/lite/guide/python) that it might be possible to run it that way on the Raspberry Pi as well.
+
+<img src="img/two_versus_ten.png" alt="Two versus ten"/>
+
+[![Part 1 (C) Two versus Ten Classifier](https://img.youtube.com/vi/HZEc9LwuTio/0.jpg)](https://www.youtube.com/watch?v=HZEc9LwuTio)
+
+This test was incredibly successful and whenever I held up a card it would be able to classify it correctly. It would fail sometimes if I held up both the two and ten in the same image or if I didn't have any card in the image. These failures are due to the fact that there is no class for both of the cards and also no class for no cards. Other scenarios that can occur are identifying whose card is being classified at that point in time. To handle the uncertainty around identification of whose card is being classified, I will have the player assume that they should input the dealer's card into the system first and then their cards. Also, I will have the player press a button to manually capture the card that they want to process into the system. If there was a misclassification, it is not a big deal because they can just hit the reset button and scan the cards into the system again. There is no need to change the system further because I have handled these cases. Some additional optimizations could be to play around with the rotation of the card to see how the number of training examples impacts the model accuracy and also the overall model size. For example, since the card is likely symmetric, I don't necessarily need to have both the 0 degrees and 180 degrees training images. Also, I realized later that in Blackjack the 10, Jack, Queen, and King all have the same numerical value of 10, so I could potentially try to condense them down into one class.
+
+Overall, the use of the Wizard of Odds device will work as follows. The dealer will hand out two cards to the player and show one of the dealer's cards to the player. The player will scan the dealer's card first and then scan their cards. Note that to scan a card, the player points the camera part of the device at the card (one at a time) and then presses a button. Once the three cards are scanned, the Wizard of Odds device will do a calculation and then recommend an action by lighting up a light on the LED panel. If further cards are dealt to the player in the same hand, the player can scan those additional cards in and the recommendation will update. Once the interaction is complete, the player can reset the count by pressing the other button and repeat the process.
 
 ### Part D
 ### Characterize your own Observant system
@@ -259,6 +204,19 @@ During the lecture, we mentioned questions to help characterize a material:
 * How does X feel?
 
 **\*\*\*Include a short video demonstrating the answers to these questions.\*\*\***
+
+For this part, I tried to make a more complicated classifier with all the classes (13 + 1 background class). This can be used for detecting the number of each card (note that the suite does not matter and makes the classification simpler). A good environment for this classification is anywhere with normal light levels as low light levels would make it hard for the camera to pick up on the features of the image and classify it properly. The classification might break if the player mistakenly scans two or more cards. If that happens, it might show an incorrect sum since the wrong number would be input to the system. In the complex classifier, I will include an empty background class to account for the no cards case. Another thing to consider is the distance with which to hold the device from the card surface. If it is two close, the classifier may not be able to pick up and scan the entire card in. Finally, the entire device should not feel too clunky and should be easy to hold in one's hands. I also drew a more detailed diagram (first draft sketch) about how the Wizard of Odds device will look and feel like (below). A short video that shows how the classifier works is shown below as well. The classifier seemed to work pretty well for most of the numbers. It had some trouble with the ace and five and a few of the face cards were mistaken for other face cards (totally ok!). For the final classifier, I can also try to increase the number of epochs. The keras file for the TeachableMachines classifier is [here](./models/card_numbers_keras.zip). I also ran one for 150 epochs, and that classifier is [here](./models//card_numbers_150_keras.zip). The raw samples are [here](./samples/).
+
+<img src="img/part_d_design.png" alt="Device Design"/>
+
+<img src="img/training_complex.png" alt="Training Complex"/>
+
+[![Part 1 (D) Card Numbers Classifier](https://img.youtube.com/vi/BdQmkDdYr3k/0.jpg)](https://www.youtube.com/watch?v=BdQmkDdYr3k)
+
+I was also able to run the classifier on the Raspberry Pi!
+
+<img src="img/card_numbers.png" alt="Card Numbers"/>
+
 
 ### Part 2.
 

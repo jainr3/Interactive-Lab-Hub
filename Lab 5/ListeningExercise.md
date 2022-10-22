@@ -22,3 +22,12 @@ Audio sources to use:
 - [Backyard Fountain](https://www.youtube.com/watch?v=Ez1f6Vp_UYk)  
 
 
+|           Sound           | Influence on the context |            Implications for your behavior           |
+|:-------------------------:|:------------------------:|:---------------------------------------------------:|
+|      Walking in Tokyo     |         Peaceful         |                 Causes you to focus                 |
+|    Restaurant Ambiance    |           Busy           |     Causes you to focus / talk louder to others     |
+|     Walking in Forest     |         Relaxing         |          Causes you to focus / become quiet         |
+|  Working in a Coffee Shop |      Busy; exciting      | Causes you to look around every now and then; focus |
+|    Walking in Shanghai    |       Awe-inspiring      |              Causes you to look around              |
+| Biking in the Netherlands |           Busy           |                Causes you to be alert               |
+|     Backyard Fountain     |         Relaxing         |              Causes you to fall asleep              |
