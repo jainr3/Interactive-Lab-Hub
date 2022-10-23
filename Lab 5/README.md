@@ -213,7 +213,7 @@ For this part, I tried to make a more complicated classifier with all the classe
 
 [![Part 1 (D) Card Numbers Classifier](https://img.youtube.com/vi/BdQmkDdYr3k/0.jpg)](https://www.youtube.com/watch?v=BdQmkDdYr3k)
 
-I was also able to run the classifier on the Raspberry Pi!
+I was also able to run the classifier on the Raspberry Pi! The code is [here](./wizard_of_odds/wizard_of_odds_basic.py).
 
 <img src="img/card_numbers.png" alt="Card Numbers"/>
 
