@@ -10,6 +10,7 @@ import qwiic_led_stick
 import time
 import qwiic_i2c
 import qwiic_button
+import urllib, urllib.request, urllib.parse, subprocess
 
 # Disable scientific notation for clarity
 np.set_printoptions(suppress=True)
@@ -58,6 +59,10 @@ def build_blackjack_strategy():
    
    return blackjack_strategy
 
+def google_tts(words):
+  url = f"http://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q={words}&tl=en"
+  subprocess.call(['/usr/bin/mplayer', '-ao', 'alsa', '-really-quiet', '-noconsolecontrols', url])
+
 img = None
 webCam = False
 if(len(sys.argv)>1 and not sys.argv[-1]== "noWindow"):
@@ -99,6 +104,10 @@ cards_mapping = {"TWO": 2, "THREE": 3, "FOUR": 4, "FIVE": 5, "SIX": 6, "SEVEN": 
 my_stick = qwiic_led_stick.QwiicLEDStick()
 red_button = qwiic_button.QwiicButton(0x6F)
 green_button = qwiic_button.QwiicButton(0x5B)
+green_button.LED_off()
+red_button.LED_off()
+my_stick.LED_off()
+brightness = 100
 
 print("Building strategy")
 blackjack_strategy = build_blackjack_strategy()
@@ -128,6 +137,7 @@ while(True):
    # Check if button 1 is pressed
    if red_button.is_button_pressed() == True:
       print("Red button is pressed!")
+      red_button.LED_on(brightness)
       # Reset the counts...
       dealer_card = ""
       player_cards = []
@@ -138,6 +148,7 @@ while(True):
    # Check if button2 is pressed
    if green_button.is_button_pressed() == True:
       print("Green button is pressed!")
+      green_button.LED_on(brightness)
 
       rows, cols, channels = img.shape
       data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
@@ -192,7 +203,8 @@ while(True):
                   # No sums possible, have to surrender
                   recommended_action = "Su"
             print("The recommended action is", recommended_action, "for dealer card", dealer_card, "and player cards", player_cards)    
-
+            full_action_mapping = {"H": "Hit", "S": "Stand", "D": "Double", "P": "Split", "Su": "Surrender"}
+            google_tts(full_action_mapping[recommended_action])
    
    # Depending on the index, set a specific color for prediction # TODO
    if recommended_action == "H":
@@ -217,7 +229,8 @@ while(True):
       my_stick.set_single_LED_color(1, 255, 0, 0)
 
    time.sleep(0.1)
-
+   green_button.LED_off()
+   red_button.LED_off()
 
    if webCam:
       if sys.argv[-1] == "noWindow":
