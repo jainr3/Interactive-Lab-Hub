@@ -25,7 +25,7 @@ time.sleep(1)
 green_button.LED_off()
 
 input("Press enter to go to next command\n")
-# user's card is scanned (#1), green button lights up (ACE)
+# user's card is scanned (#1), green button lights up (TEN)
 green_button.LED_on(brightness)
 time.sleep(1)
 green_button.LED_off()
@@ -86,10 +86,35 @@ def walking_rainbow(LED_stick, rainbow_length, LED_length, delay):
     LED_stick.set_all_LED_unique_color(red_array, green_array, blue_array, LED_length)
     time.sleep(delay)
 
-google_tts("Blackjack!!!")
-walking_rainbow(my_stick, 40, 10, 0.05)
+time.sleep(0.5)
+# wizard does the calculation and lights up action (split)
+my_stick.set_single_LED_color(4, 0, 255, 0)
+my_stick.set_single_LED_color(3, 0, 255, 0)
+google_tts("Split")
 
+input("Press enter to go to next command\n")
+# user's card is scanned (#3), green button lights up (TEN)
+green_button.LED_on(brightness)
+time.sleep(1)
+green_button.LED_off()
 
+time.sleep(0.5)
+# wizard does the calculation and lights up action (stand)
+my_stick.set_single_LED_color(8, 255, 0, 0)
+my_stick.set_single_LED_color(7, 255, 0, 0)
+google_tts("Stand")
+
+input("Press enter to go to next command\n")
+# user's card is scanned (#4), green button lights up (NINE)
+green_button.LED_on(brightness)
+time.sleep(1)
+green_button.LED_off()
+
+time.sleep(0.5)
+# wizard does the calculation and lights up action (stand)
+my_stick.set_single_LED_color(8, 255, 0, 0)
+my_stick.set_single_LED_color(7, 255, 0, 0)
+google_tts("Stand")
 
 # user presses the red button to reset wizard
 my_stick.LED_off()
