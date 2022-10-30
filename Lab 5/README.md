@@ -222,4 +222,99 @@ I was also able to run the classifier on the Raspberry Pi! The code is [here](./
 
 Following exploration and reflection from Part 1, finish building your interactive system, and demonstrate it in use with a video.
 
+For the second part of the lab, I finished building my design. The interaction that I am prototyping is a group of people playing blackjack. The goal for the interaction is to have a device (called the Wizard of Odds) calculate recommended actions for someone who doesn't know how to play. The actions will be based on what cards the player has and what card the dealer is showing. The device signals the player through an LED strip and voice. The development for part 2 included developing the blackjack strategy, creating a casing, writing the code, and testing it with a user. I also added support for verbally speaking the recommended action using Google TTS and also lit up the LEDs for the buttons when they are pressed.
+
+<img src="img/final_design.jpg" alt="Final Design"/>
+
+I also updated the Contextual Interaction Design Tool to reflect the results of the progress made in part 2 of the lab. Notably, the Wizard of Odds device provides visual / audio feedback to the player. I decided not to incorporate other features like calculating the payout, showing the total sum of a players hand, or displaying the probability because it would have required a screen to effectively communicate the information. The time for the interaction should be as minimal as possible so that player can continue and win as many blackjack games as possible!
+
+<img src="img/part_2_updated_tool.png" alt="Contextual Interaction Design Tool"/>
+
+
+
+### Blackjack Strategy
+
+I encoded the following strategy chart in code so that based on the cards read in, the wizard can make a prediction of what action the player should take. For simplicity, I considered 5 different actions (Hit, Stand, Double, Split, and Surrender). Based on what recommended action is output, the wizard will light up certain LEDs on the strip.
+
+<img src="img/blackjack_strategy_chart.jpg" alt="Blackjack strategy chart"/>
+
+### Physical Hardware Construction
+
+I reconsidered my original design by thinking about a 2 sided device where the camera would be positioned on the opposite side. This would kind of look like a "camera" where the user would point the device at the card and "snap" a photo by pressing the button. I quickly realized that this would have the major problem of properly lining up the camera lens with the card, so I reverted back to my original design and tweaked it a little bit. The two designs (alternative and final) are shown below.
+
+<img src="img/part_2_alt_design.png" alt="Alternative Design"/>
+
+<img src="img/part_2_final_design.png" alt="Final Design"/>
+
+
+I created a simple cardboard casing and created holes for the different sensors to match the original design from part 1. The casing holds the camera, Raspberry Pi, battery pack, and all the wiring. In addition, the LED strip, and two push-buttons are attached to the front face of the casing so the user can interact with them. I also put some cardboard inserts inside so that things inside didn't slide around. This was especially important for the camera since the lens has to be lined up with the hole to actually see outside. I originally designed a 12" x 6" x 2.5" box but found that there was too much empty space so I reduced the size to 8" x 6" x 2.5".
+
+<img src="img/construction_1.jpg" alt="Construction 1"/>
+
+<img src="img/construction_2.jpg" alt="Construction 2"/>
+
+<img src="img/construction_3.jpg" alt="Construction 3"/>
+
+### Software Development
+
+I ran a number of individual tests to make sure that each of the sensors was working properly. The test for the LED stick is located [here](./led_stick_test.py) and the test for the Qwiic buttons is [here](./qwiic_two_buttons_test.py). When I was testing the Qwiic buttons, I quickly found out that since both buttons are sending data over the same I2C address, the I2C address for one of them would need to be changed. I used [this script](./qwiic_change_button_i2c.py) to do that. After that was done, I confirmed that the I2C address was changed by running i2cdetect which showed that the buttons were at 0x5B and 0x6F while the LED strip was at 0x23. Another thing that I noticed when changing the I2C addresses was that only one button should be connected to the Pi when running the script, else it would change both buttons' I2C addresses.
+
+<img src="img/changing_i2c.png" alt="Changing I2C"/>
+
+<img src="img/construction_4.jpg" alt="Construction 4"/>
+
+Once the simple tests were done, I started to develop the main script for the wizard of odds device. I started by encoding the blackjack strategy table into code (see [here](./blackjack_strategy.py)). Then I built off the [basic code](./wizard_of_odds/wizard_of_odds_basic.py) for the loading the teachable machines keras model. The teachable machines keras model that I used included 14 classes (13 suites + 1 background), and I trained the model on approximately 250-300 images per class (total dataset size was approx 4000 images). I did notice that increasing the number of training samples made my model more accurate. The major additions included code for interpreting the blackjack strategy, querying the strategy table, pressing buttons to capture an image or reset the card hands, as well as outputing the recommended action on the LED strip. I also lit up the buttons when they were pressed and had Google TTS speak the recommended action. The final code is [here](./wizard_of_odds/wizard_of_odds.py). A short video for some of the behind-the-scenes testing is shown below.
+
+[![Part 2 Wizard of Odds Behind the Scenes](https://img.youtube.com/vi/00gOoor1UhI/0.jpg)](https://www.youtube.com/watch?v=00gOoor1UhI)
+
+### Final Result
+
+<img src="img/test_setup.jpg" alt="Test Setup"/>
+
 **\*\*\*Include a short video demonstrating the finished result.\*\*\***
+
+A video showing the final interaction is shown below. Although the image classification was not perfect, it shows the concept (and in many cases the outputted result - Hit, Stand, etc - is the same according to the table, so a little bit of inaccuracy is actually acceptable). A better classification model would definitely improve the device further. The video also shows the Google TTS telling the player verbally what to do (turn the volume up!) and the button LEDs also light up when pressed.
+
+[![Part 2 Wizard of Odds Final Interaction](https://img.youtube.com/vi/HUpQDRUeg5I/0.jpg)](https://www.youtube.com/watch?v=HUpQDRUeg5I)
+
+### Sources
+
+* https://www.888casino.com/blog/blackjack-strategy/best-blackjack-strategies
+
+* Inspiration for the name: https://wizardofodds.com/games/blackjack/hand-calculator/
+
+* https://www.blackjack.org/blackjack/strategy/
+
+* https://www.tensorflow.org/lite/guide/python
+
+* https://learn.sparkfun.com/tutorials/sparkfun-qwiic-button-hookup-guide/python-package
+
+* https://github.com/sparkfun/Qwiic_Button_Py/blob/main/examples/qwiic_button_ex1_buttonPress.py
+
+* https://github.com/sparkfun/Qwiic_Button_Py/blob/main/examples/qwiic_button_ex6_changeI2CAddress.py
+
+* https://github.com/sparkfun/Qwiic_Button_Py/blob/main/examples/qwiic_button_ex7_2Buttons.py
+
+* https://github.com/sparkfun/Qwiic_LED_Stick_Py/blob/main/examples/qwiic_led_stick_ex2_single_pixel.py
+
+* https://github.com/sparkfun/Qwiic_LED_Stick_Py/blob/main/examples/qwiic_led_stick_ex1_blink.py
+
+* https://learn.sparkfun.com/tutorials/sparkfun-qwiic-button-hookup-guide/all
+
+* https://learn.sparkfun.com/tutorials/sparkfun-qwiic-button-hookup-guide/resources-and-going-further
+
+* https://learn.adafruit.com/scanning-i2c-addresses/raspberry-pi
+
+* https://learn.sparkfun.com/tutorials/qwiic-kit-for-raspberry-pi-hookup-guide/troubleshooting
+
+* https://github.com/sparkfun/Qwiic_Button_Py/blob/main/examples/qwiic_button_ex2_LEDon.py
+
+* https://stackoverflow.com/questions/26006387/using-python-3-on-a-raspberry-pi-how-to-call-mplayer-and-passing-a-url
+
+* https://ubuntuforums.org/showthread.php?t=2213319
+
+* https://ubuntuforums.org/showthread.php?t=2039557
+
+* https://blackonsole.org/failed-to-open-lirc-support/
+
+* https://github.com/sparkfun/Qwiic_LED_Stick_Py/blob/main/examples/qwiic_led_stick_ex8_walking_rainbow.py
