@@ -67,6 +67,7 @@ font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
 
 light_topic = 'IDD/factory1/light'
 audio_topic = 'IDD/factory1/audio'
+action_topic = 'IDD/factory1/actions'
 
 def google_tts(words):
   url = f"http://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q={words}&tl=en"
@@ -107,17 +108,19 @@ write_messages()
 def on_message(client, userdata, msg):
   # if a message is recieved on the colors topic, parse it and set the color
   print(msg.topic, msg.payload.decode('UTF-8'))
-  global light_msg, audio_msg, light_alert_active, audio_alert_active
+  global light_msg, audio_msg, light_alert_active, audio_alert_active, last_light_alert, last_audio_alert
   if msg.topic == light_topic:
     try:
       light_level = int(msg.payload.decode('UTF-8'))
-      light_msg = f"Current Light Level: {light_level}"
+      light_msg = f"Light Level: {light_level}"
       if light_level < 1000 and (last_light_alert == None or time.time() - last_light_alert > 10):
         light_alert_active = True
         # If the threshold was hit and (the last alert was never OR the last alert was more than 10 seconds ago)
         # Speak alert now and change text color to red
         write_messages(light_msg, audio_msg, light_alert_active, audio_alert_active)
         google_tts(f"Alert: Light level in factory 1 has dropped to {light_level}")
+        # Also send a message over the broker back so the station knows
+        client.publish(action_topic, "Low light level!")
       elif light_level >= 1000:
         light_alert_active = False
         write_messages(light_msg, audio_msg, light_alert_active, audio_alert_active)
@@ -126,14 +129,18 @@ def on_message(client, userdata, msg):
   elif msg.topic == audio_topic:
     try:
       audio_level = int(msg.payload.decode('UTF-8'))
-      audio_msg = f"Current High Freq: {audio_level}"
-      if audio_level > 10000 and (last_audio_alert == None or time.time() - last_audio_alert > 10):
+      audio_msg = f"High Freq: {audio_level}"
+      print(audio_msg)
+
+      if audio_level > 85 and (last_audio_alert == None or time.time() - last_audio_alert > 10):
         audio_alert_active = True
         # If the threshold was hit and (the last alert was never OR the last alert was more than 10 seconds ago)
         # Speak alert now and change text color to red
         write_messages(light_msg, audio_msg, light_alert_active, audio_alert_active)
         google_tts(f"Alert: Noise level is high in factory 1")
-      elif audio_level <= 10000:
+        # Also send a message over the broker back so the station knows
+        client.publish(action_topic, "High noise level!")
+      elif audio_level <= 85:
         audio_alert_active = False
         write_messages(light_msg, audio_msg, light_alert_active, audio_alert_active)
     except:
