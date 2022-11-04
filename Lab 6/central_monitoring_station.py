@@ -80,8 +80,8 @@ def on_connect(client, userdata, flags, rc):
 
 last_light_alert = None
 last_audio_alert = None
-light_msg = f"Current Light Level: None"
-audio_msg = f"Current High Freq: None"
+light_msg = f"Light Level: None"
+audio_msg = f"Volume Level: None"
 light_alert_active = False
 audio_alert_active = False
 
@@ -107,8 +107,8 @@ write_messages()
 
 def on_message(client, userdata, msg):
   # if a message is recieved on the colors topic, parse it and set the color
+  global light_msg, audio_msg, light_alert_active, audio_alert_active, last_light_alert, last_audio_alert, light_topic, audio_topic, action_topic
   print(msg.topic, msg.payload.decode('UTF-8'))
-  global light_msg, audio_msg, light_alert_active, audio_alert_active, last_light_alert, last_audio_alert
   if msg.topic == light_topic:
     try:
       light_level = int(msg.payload.decode('UTF-8'))
@@ -129,9 +129,7 @@ def on_message(client, userdata, msg):
   elif msg.topic == audio_topic:
     try:
       audio_level = int(msg.payload.decode('UTF-8'))
-      audio_msg = f"High Freq: {audio_level}"
-      print(audio_msg)
-
+      audio_msg = f"Volume Level: {audio_level}"
       if audio_level > 85 and (last_audio_alert == None or time.time() - last_audio_alert > 10):
         audio_alert_active = True
         # If the threshold was hit and (the last alert was never OR the last alert was more than 10 seconds ago)
