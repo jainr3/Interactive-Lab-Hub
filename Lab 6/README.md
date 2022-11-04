@@ -1,6 +1,6 @@
 # Little Interactions Everywhere
 
-**NAMES OF COLLABORATORS HERE**
+**NAMES OF COLLABORATORS HERE** Rahul Jain, Yusef Iskandar (for part E)
 
 ## Prep
 
@@ -30,34 +30,9 @@ E) [Make It Your Own](#part-)
 ### Part A
 ### MQTT
 
-MQTT is a lightweight messaging portal invented in 1999 for low bandwidth networks. It was later adopted as a defacto standard for a variety of [Internet of Things (IoT)](https://en.wikipedia.org/wiki/Internet_of_things) devices. 
+For this part, I was able to successfully publish to the `IDD` topic.
 
-#### The Bits
-
-* **Broker** - The central server node that receives all messages and sends them out to the interested clients. Our broker is hosted on the far lab server (Thanks David!) at `farlab.infosci.cornell.edu/8883`. Imagine that the Broker is the messaging center!
-* **Client** - A device that subscribes or publishes information to/on the network.
-* **Topic** - The location data gets published to. These are *hierarchical with subtopics*. For example, If you were making a network of IoT smart bulbs this might look like `home/livingroom/sidelamp/light_status` and `home/livingroom/sidelamp/voltage`. With this setup, the info/updates of the sidelamp's `light_status` and `voltage` will be store in the subtopics. Because we use this broker for a variety of projects you have access to read, write and create subtopics of `IDD`. This means `IDD/ilan/is/a/goof` is a valid topic you can send data messages to.
-*  **Subscribe** - This is a way of telling the client to pay attention to messages the broker sends out on the topic. You can subscribe to a specific topic or subtopics. You can also unsubscribe. Following the previouse example of home IoT smart bulbs, subscribing to `home/livingroom/sidelamp/#` would give you message updates to both the light_status and the voltage.
-* **Publish** - This is a way of sending messages to a topic. Again, with the previouse example, you can set up your IoT smart bulbs to publish info/updates to the topic or subtopic. Also, note that you can publish to topics you do not subscribe to. 
-
-
-**Important note:** With the broker we set up for the class, you are limited to subtopics of `IDD`. That is, to publish or subcribe, the topics will start with `IDD/`. Also, setting up a broker is not much work, but for the purposes of this class, you should all use the broker we have set up for you!
-
-
-#### Useful Tooling
-
-Debugging and visualizing what's happening on your MQTT broker can be helpful. We like [MQTT Explorer](http://mqtt-explorer.com/). You can connect by putting in the settings from the image below.
-
-
-![input settings](imgs/mqtt_explorer.png?raw=true)
-
-
-Once connected, you should be able to see all the messages under the IDD topic. , go to the **Publish** tab and try publish something! From the interface you can send and plot messages as well. Remember, you are limited to subtopics of `IDD`. That is, to publish or subcribe, the topics will start with `IDD/`.
-
-
-<img width="1026" alt="Screen Shot 2022-10-30 at 10 40 32 AM" src="https://user-images.githubusercontent.com/24699361/198885090-356f4af0-4706-4fb1-870f-41c15e030aba.png">
-
-
+<img src="imgs/part_A_test.png" alt="Test"/>
 
 ### Part B
 ### Send and Receive on your Pi
@@ -66,104 +41,106 @@ Once connected, you should be able to see all the messages under the IDD topic. 
 
 **Running Examples on Pi**
 
-* Install the packages from `requirements.txt` under a virtual environment, we will continue to use the `circuitpython` environment we setup earlier this semester:
+I installed the requirements and was able to run the sender and reader scripts. Please see below for images from the tests. The first image is the sender test where I sent a message from the Pi and it was received on the MQTT Explorer. The second image is the receiver test where I sent a message from the Pi and then received it back on the MQTT Explorer.
 
-  ```
-  pi@raspberrypi:~/Interactive-Lab-Hub $ source circuitpython/bin/activate
-  (circuitpython) pi@raspberrypi:~/Interactive-Lab-Hub $ cd Lab\ 6
-  (circuitpython) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 6 $ pip install -r requirements.txt
-  ...
-  ```
-* Run `sender.py`, fill in a topic name (should start with `IDD/`), then start sending messages. You should be able to see them on MQTT Explorer.
+First image:
 
-  ```
-  (circuitpython) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 6 $ python sender.py
-  >> topic: IDD/AlexandraTesting
-  now writing to topic IDD/AlexandraTesting
-  type new-topic to swich topics
-  >> message: testtesttest
-  ...
-  ```
-* Run `reader.py`, and you should see any messages being published to `IDD/` subtopics. Type a message inside MQTT explorer and see if you can receive it with `reader.py`.
+<img src="imgs/part_B_test2.png" alt="Test 2"/>
 
-  ```
-  (circuitpython) pi@raspberrypi:~ Interactive-Lab-Hub/Lab 6 $ python reader.py
-  ...
-  ```
+Second image:
 
-<img width="890" alt="Screen Shot 2022-10-30 at 10 47 52 AM" src="https://user-images.githubusercontent.com/24699361/198885135-a1d38d17-a78f-4bb2-91c7-17d014c3a0bd.png">
+<img src="imgs/part_B_test3.png" alt="Test 3"/>
 
 
 **\*\*\*Consider how you might use this messaging system on interactive devices, and draw/write down 5 ideas here.\*\*\***
 
+Idea 1: Warehouse (Safety) Monitoring
+
+In order to promote ensure proper warehouse operation (eg safety), monitor things like noise level, light level, temperature level, air quality, boxes falling, reversing forklifts (distance sensor), # people in an area, etc. Sensors can be placed at different locations throughout the warehouse and monitor for different things. The sensor readings can be delivered to the warehouse management who will monitor for abnormal readings and take corrective actions if something is wrong.
+
+<img src="imgs/part_B_idea1.png" alt="Ideas"/>
+
+Idea 2: Blue Light System for college campuses
+
+In order to promote public safety, position a distributed blue light system around a college campus. If someone needs help, they can press a button which will send a message over MQTT to public safety officers. The officers can reply that help is on the way which can be displayed to the users as an LED or screen output. The screen for example could display some basic info like the time of request, ETA, etc. The public safety officers can also broadcast out alerts out to the devices so that people passing by can be notified on-the-go.
+
+<img src="imgs/part_B_idea2.png" alt="Ideas"/>
+
+Idea 3: Elevator Motion Tracking
+
+For this idea, use an accelerometer to track the motion of an elevator to see how many trips are being taken and at what times. This information can be logged and used to extract different trends. This might be useful to apartment staff trying to judge the best time to make stops at the different floors to take out the recycling.
+
+<img src="imgs/part_B_idea3.png" alt="Ideas"/>
+
+Idea 4: Study Room In-Use Detection
+
+This idea simply will try to count the number of study rooms that are free or in use and display that information to people looking for a study room. The different sensing mechanisms that I considered include light-based, motion-based, accelerometer-based, or camera-based mechanisms. Each of these methods have pros and cons. For example, the light sensor will be cheap and easy to do but may be inaccurate. On the other hand, the camera-based detection is expensive (and not to mention the privacy issues), but it has greater accuracy.
+
+<img src="imgs/part_B_idea4.png" alt="Ideas"/>
+
+Idea 5: Election Day Secure Voting System
+
+Since election day is coming up, I was thinking about ways to use a distributed system + MQTT with vote tallying. One version of this could be to have users sign in with facial recognition then use knobs/buttons to select their candidate. Once their selection is made, their vote is securely sent (encrypted / hashed etc.) to a central location where it can be tallied up. I was inspired for this idea by the [Bulletin Board Voting System](https://ieeexplore.ieee.org/abstract/document/6045953). Another version of this, could be to have poll workers use a teachable machines ML model to scan the ballots in and also send the votes in the same way.
+
+<img src="imgs/part_B_idea5.png" alt="Ideas"/>
+
+
 ### Part C
 ### Streaming a Sensor
 
-We have included an updated example from [lab 4](https://github.com/FAR-Lab/Interactive-Lab-Hub/tree/Fall2021/Lab%204) that streams the [capacitor sensor](https://learn.adafruit.com/adafruit-mpr121-gator) inputs over MQTT. We will also be running this example under `circuitpython` virtual environment.
-
-Plug in the capacitive sensor board with the Qwiic connector. Use the alligator clips to connect a Twizzler (or any other things you used back in Lab 4) and run the example script:
-
-<p float="left">
-<img src="https://cdn-learn.adafruit.com/assets/assets/000/082/842/large1024/adafruit_products_4393_iso_ORIG_2019_10.jpg" height="150" />
-<img src="https://cdn-shop.adafruit.com/970x728/4210-02.jpg" height="150">
-<img src="https://cdn-learn.adafruit.com/guides/cropped_images/000/003/226/medium640/MPR121_top_angle.jpg?1609282424" height="150"/>
-<img src="https://media.discordapp.net/attachments/679721816318803975/823299613812719666/PXL_20210321_205742253.jpg" height="150">
-</p>
-
- ```
- (circuitpython) pi@raspberrypi:~ Interactive-Lab-Hub/Lab 6 $ python distributed_twizzlers_sender.py
- ...
- ```
-
 **\*\*\*Include a picture of your setup here: what did you see on MQTT Explorer?\*\*\***
 
+I was able to see the capacitive sensor streaming on the MQTT Explorer window. Also for the next part, I could see the distance sensor streaming in the window as well. A picture of the MQTT explorer window, the capacitive sensor setup, and a short video of the capacitive sensor data streaming is below.
+
+<img src="imgs/part_C_mqtt.png" alt="Part C"/>
+
+<img src="imgs/part_C_capacitive_sensor_setup.jpg" alt="Part C"/>
+
+[![Part C Capacitive Sensor Streaming](https://img.youtube.com/vi/tnvf2PZAUt8/0.jpg)](https://www.youtube.com/watch?v=tnvf2PZAUt8)
+
+
 **\*\*\*Pick another part in your kit and try to implement the data streaming with it.\*\*\***
+
+I connected a distance sensor and implemented data streaming with it. A picture of the setup and short video showing the data streaming is below. The script for this part is [here](./distributed_distance_sender.py).
+
+<img src="imgs/part_C_distance_sensor_setup.jpg" alt="Part C"/>
+
+[![Part C Distance Sensor Streaming](https://img.youtube.com/vi/ZGwrUhmBayY/0.jpg)](https://www.youtube.com/watch?v=ZGwrUhmBayY)
 
 
 ### Part D
 ### The One True ColorNet
 
-It is with great fortitude and resilience that we shall worship at the altar of the *OneColor*. Through unity of the collective RGB, we too can find unity in our heart, minds and souls. With the help of machines, we can overthrow the bourgeoisie, get on the same wavelength (this was also a color pun) and establish [Fully Automated Luxury Communism](https://en.wikipedia.org/wiki/Fully_Automated_Luxury_Communism).
-
-The first step on the path to *collective* enlightenment, plug the [APDS-9960 Proximity, Light, RGB, and Gesture Sensor](https://www.adafruit.com/product/3595) into the [MiniPiTFT Display](https://www.adafruit.com/product/4393). You are almost there!
-
-<p float="left">
-  <img src="https://cdn-learn.adafruit.com/assets/assets/000/082/842/large1024/adafruit_products_4393_iso_ORIG_2019_10.jpg" height="150" />
-  <img src="https://cdn-shop.adafruit.com/970x728/4210-02.jpg" height="150">
-  <img src="https://cdn-shop.adafruit.com/970x728/3595-03.jpg" height="150">
-</p>
-
-
-The second step to achieving our great enlightenment is to run `color.py`. We have talked about this sensor back in Lab 2 and Lab 4, this script is similar to what you have done before! Remember to activate the `circuitpython` virtual environment you have been using during this semester before running the script:
-
- ```
- (circuitpython) pi@raspberrypi:~ Interactive-Lab-Hub/Lab 6 $ python color.py
- ...
- ```
-
-By running the script, wou will find the two squares on the display. Half is showing an approximation of the output from the color sensor. The other half is up to the collective. Press the top button to share your color with the class. Your color is now our color, our color is now your color. We are one.
-
-(A message from the previous TA, Ilan: I was not super careful with handling the loop so you may need to press more than once if the timing isn't quite right. Also, I haven't load-tested it so things might just immediately break when everyone pushes the button at once.)
-
-You may ask "but what if I missed class?" Am I not admitted into the collective enlightenment of the *OneColor*?
-
-Of course not! You can go to [https://one-true-colornet.glitch.me/](https://one-true-colornet.glitch.me/) and become one with the ColorNet on the inter-webs. Glitch is a great tool for prototyping sites, interfaces and web-apps that's worth taking some time to get familiar with if you have a chance. Its not super pertinent for the class but good to know either way. 
-
 **\*\*\*Can you set up the script that can read the color anyone else publish and display it on your screen?\*\*\***
 
+Yes. I have used the [color script](./color.py) to read the colors and display it on my screen.
+
+[![Part D Color Sensor Streaming](https://img.youtube.com/vi/4jAMQOQg-RY/0.jpg)](https://www.youtube.com/watch?v=4jAMQOQg-RY)
 
 ### Part E
 ### Make it your own
 
-Find at least one class (more are okay) partner, and design a distributed application together based on the exercise we asked you to do in this lab.
+<img src="imgs/part_E_zoom.png" alt="Part E"/>
 
-**\*\*\*1. Explain your design\*\*\*** For example, if you made a remote controlled banana piano, explain why anyone would want such a thing.
+**\*\*\*1. Explain your design\*\*\*** 
 
-**\*\*\*2. Diagram the architecture of the system.\*\*\*** Be clear to document where input, output and computation occur, and label all parts and connections. For example, where is the banana, who is the banana player, where does the sound get played, and who is listening to the banana music?
+My partner and I went with my idea #1, a factory/warehouse that has sensors distributed all around and is sending messages to a central monitoring office which is checking for anomalies. We can monitor various things like the noise level in the factory and the light level (since these are the sensors that we possess). If we had other sensors, we could monitor for things like temperature level, air quality, boxes falling, reversing forklifts (distance sensor), # people in an area, etc. Using MQTT is useful for this because streaming this type of data across a large area or multiple buildings makes it easy for a central authority to see everything in a dashboard like manner and respond accordingly.
 
-**\*\*\*3. Build a working prototype of the system.\*\*\*** Do think about the user interface: if someone encountered these bananas somewhere in the wild, would they know how to interact with them? Should they know what to expect?
+**\*\*\*2. Diagram the architecture of the system.\*\*\***
 
-**\*\*\*4. Document the working prototype in use.\*\*\*** It may be helpful to record a Zoom session where you should the input in one location clearly causing response in another location.
+The following figure shows the architecture of the system. The inputs are the various factory stations that are doing the monitoring by sending messages back to a central station that reviews the status of all the stations and does any computations to determine if there are anomalies. Then the central monitoring station decides if it needs to send people / resources out to the stations or perhaps just send a message back to the station. For the message being sent back to the station, it will be outputted on the screen and also a verbal message will play over the loudspeaker.
 
-<!--**\*\*\*5. BONUS (Wendy didn't approve this so you should probably ignore it)\*\*\*** get the whole class to run your code and make your distributed system BIGGER.-->
+<img src="imgs/part_E_architecture.png" alt="Part E"/>
+
+**\*\*\*3. Build a working prototype of the system.\*\*\***
+
+A short video of a behind-the-scenes test is below. The final code for the central monitoring system is [here](./central_monitoring_station.py) and the final code for the factory is [here](./factory.py).
+
+[![Part E Factory Monitoring Behind-the-scenes Test](https://img.youtube.com/vi/PYb4LYRVsRk/0.jpg)](https://www.youtube.com/watch?v=PYb4LYRVsRk)
+
+**\*\*\*4. Document the working prototype in use.\*\*\***
+
+A short video of the final interaction is below.
+
+[![Part E Factory Monitoring Final Interaction](https://img.youtube.com/vi/EVtC1CCwqPg/0.jpg)](https://www.youtube.com/watch?v=EVtC1CCwqPg)
 
