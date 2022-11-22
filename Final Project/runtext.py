@@ -6,25 +6,17 @@ import time
 
 
 class RunText(SampleBase):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, text, *args, **kwargs):
         super(RunText, self).__init__(*args, **kwargs)
-        self.parser.add_argument("-t", "--text", help="The text to scroll on the RGB LED panel", default="Hello world!")
+        self.text = text
 
     def run(self):
         offscreen_canvas = self.matrix.CreateFrameCanvas()
         font = graphics.Font()
-        font.LoadFont("../../../fonts/4x6.bdf")
+        font.LoadFont("fonts/7x13.bdf")
         textColor = graphics.Color(255, 255, 0)
         pos = offscreen_canvas.width
-        my_text = "Pacman Fill Dots!"
-
-        while True:
-            offscreen_canvas.Clear()
-            len = graphics.DrawText(offscreen_canvas, font, 0, 10, textColor, my_text)
-            time.sleep(0.04)
-            offscreen_canvas = self.matrix.SwapOnVSync(offscreen_canvas)
-
-
+        my_text = self.text
 
         len = graphics.DrawText(offscreen_canvas, font, pos, 18, textColor, my_text)
         while (pos + len >= 0):
@@ -34,8 +26,6 @@ class RunText(SampleBase):
 
             time.sleep(0.04)
             offscreen_canvas = self.matrix.SwapOnVSync(offscreen_canvas)
-
-
 
 # Main function
 if __name__ == "__main__":
