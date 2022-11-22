@@ -33,12 +33,12 @@ class MatrixPanel(SampleBase):
     self.game = PacmanGame() # configure this if we want multiple games
 
   def run(self):
-    self.offset_canvas = self.matrix.CreateFrameCanvas()
+    offset_canvas = self.matrix.CreateFrameCanvas()
     while True:
       # First do the home screen stuff
-      self.game.display_home_screen(self, mpu_queue)
+      self.game.display_home_screen(self, offset_canvas, mpu_queue)
       # When that is done, show the game board
-      self.game.init_board(self)
+      self.game.init_board(self, offset_canvas)
 
       while not self.game.game_over:
         # Get the inputs synchronously
@@ -46,7 +46,7 @@ class MatrixPanel(SampleBase):
         volume_level = self.get_volume_level()
 
         # Update the game state and screen, every game should have a main function
-        self.game.update_game_state(self, pitch, roll, volume_level)
+        self.game.update_game_state(self, offset_canvas, pitch, roll, volume_level)
           
         time.sleep(0.05)
       
@@ -99,7 +99,7 @@ class PacmanGame():
     self.ghosts_timesteps_left = -1 # Ghosts timesteps left, only used if ghosts are active
     self.game_over = False
 
-  def display_home_screen(self, matrix_panel, mpu_queue):
+  def display_home_screen(self, matrix_panel, offset_canvas, mpu_queue):
     pacman_corrections_black = {0: [0, 1, 2, 8, 9],
                                 1: [0, 1, 9],
                                 2: [0, 8, 9],
@@ -113,12 +113,12 @@ class PacmanGame():
                                 10: []}
 
     for x in range(1, 11):
-        for y in range(1, 11):
-            matrix_panel.offset_canvas.SetPixel(x, y, 255, 255, 0)
+      for y in range(1, 11):
+        offset_canvas.SetPixel(x, y, 255, 255, 0)
 
     for y, x_vals in pacman_corrections_black.items():
-        for x in x_vals:
-            matrix_panel.offset_canvas.SetPixel(1+x, 1+y, 0, 0, 0)
+      for x in x_vals:
+        offset_canvas.SetPixel(1+x, 1+y, 0, 0, 0)
 
     heart_corrections_black = {0: [0, 3, 4, 5, 8],
                               1: [4],
@@ -129,22 +129,22 @@ class PacmanGame():
                               8: [0, 1, 2, 3, 4, 5, 6, 7, 8]}
 
     for x in range(15, 24):
-        for y in range(23, 32):
-            matrix_panel.offset_canvas.SetPixel(x, y, 255, 0, 0)
+      for y in range(23, 32):
+        offset_canvas.SetPixel(x, y, 255, 0, 0)
 
     for y, x_vals in heart_corrections_black.items():
-        for x in x_vals:
-            matrix_panel.offset_canvas.SetPixel(15+x, 23+y, 0, 0, 0)
+      for x in x_vals:
+        offset_canvas.SetPixel(15+x, 23+y, 0, 0, 0)
 
     font = graphics.Font()
     font.LoadFont("fonts/4x6.bdf")
     textColor = graphics.Color(255, 255, 255)
-    pos = matrix_panel.offset_canvas.width
+    pos = offset_canvas.width
     my_text = "3x"
-    len = graphics.DrawText(matrix_panel.offset_canvas, font, 4, 30, textColor, my_text)
+    len = graphics.DrawText(offset_canvas, font, 4, 30, textColor, my_text)
 
     my_text = "TILT"
-    len = graphics.DrawText(matrix_panel.offset_canvas, font, 12, 21, textColor, my_text)
+    len = graphics.DrawText(offset_canvas, font, 12, 21, textColor, my_text)
 
     arrow_corrections_black = {0: [0, 1, 2, 3, 5, 6, 7, 8, 9],
                               1: [0, 1, 2, 6, 7, 8],
@@ -156,15 +156,15 @@ class PacmanGame():
                               8: [0, 1, 2, 3, 5, 6, 7, 8, 9]}
 
     for x in range(1, 10):
-        for y in range(13, 22):
-            matrix_panel.offset_canvas.SetPixel(x, y, 255, 255, 255)
+      for y in range(13, 22):
+        offset_canvas.SetPixel(x, y, 255, 255, 255)
 
     for y, x_vals in arrow_corrections_black.items():
-        for x in x_vals:
-            matrix_panel.offset_canvas.SetPixel(1+x, 13+y, 0, 0, 0)
+      for x in x_vals:
+        offset_canvas.SetPixel(1+x, 13+y, 0, 0, 0)
 
     for y in range(32):
-        matrix_panel.offset_canvas.SetPixel(29, y, 255, 255, 255)
+      offset_canvas.SetPixel(29, y, 255, 255, 255)
 
     ghost_corrections_black = {0: [0, 1, 2, 3, 4, 9, 10, 11, 12, 13],
                               1: [0, 1, 2, 11, 12, 13],
@@ -182,51 +182,51 @@ class PacmanGame():
 
 
     for x in range(12, 26):
-        for y in range(0, 14):
-            matrix_panel.offset_canvas.SetPixel(x, y, 0, 0, 255)
+      for y in range(0, 14):
+        offset_canvas.SetPixel(x, y, 0, 0, 255)
 
     for y, x_vals in ghost_corrections_black.items():
-        for x in x_vals:
-            matrix_panel.offset_canvas.SetPixel(12+x, y, 0, 0, 0)
+      for x in x_vals:
+        offset_canvas.SetPixel(12+x, y, 0, 0, 0)
 
     for y, x_vals in ghost_corrections_white.items():
-        for x in x_vals:
-            matrix_panel.offset_canvas.SetPixel(12+x, y, 255, 255, 255)
+      for x in x_vals:
+        offset_canvas.SetPixel(12+x, y, 255, 255, 255)
 
     my_text = "PAC-MAN"
-    len = graphics.DrawText(matrix_panel.offset_canvas, font, 33, 7, graphics.Color(255, 255, 0), my_text)
+    len = graphics.DrawText(offset_canvas, font, 33, 7, graphics.Color(255, 255, 0), my_text)
     # fix the 'N'
-    matrix_panel.offset_canvas.SetPixel(57, 2, 255, 255, 0)
-    matrix_panel.offset_canvas.SetPixel(59, 6, 255, 255, 0)
+    offset_canvas.SetPixel(57, 2, 255, 255, 0)
+    offset_canvas.SetPixel(59, 6, 255, 255, 0)
 
 
     for x in range(30, 64):
-        matrix_panel.offset_canvas.SetPixel(x, 8, 255, 255, 255)
+      offset_canvas.SetPixel(x, 8, 255, 255, 255)
 
     my_text = "EAT DOTS"
-    len = graphics.DrawText(matrix_panel.offset_canvas, font, 31, 16, textColor, my_text)
+    len = graphics.DrawText(offset_canvas, font, 31, 16, textColor, my_text)
 
     for x in range(32, 62):
-        matrix_panel.offset_canvas.SetPixel(x, 18, 0, 0, 255)
+      offset_canvas.SetPixel(x, 18, 0, 0, 255)
 
     for x in range(32, 62):
-        matrix_panel.offset_canvas.SetPixel(x, 30, 0, 0, 255)
+      offset_canvas.SetPixel(x, 30, 0, 0, 255)
 
     for y in range(18, 30):
-        matrix_panel.offset_canvas.SetPixel(32, y, 0, 0, 255)
+      offset_canvas.SetPixel(32, y, 0, 0, 255)
 
     for y in range(18, 31):
-        matrix_panel.offset_canvas.SetPixel(62, y, 0, 0, 255)
+      offset_canvas.SetPixel(62, y, 0, 0, 255)
 
     dots = [(37, 28), (42, 20), (55, 27), (60, 21)]
 
     for x, y in dots:
-        matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.FOOD_COLOR)
+      offset_canvas.SetPixel(x, y, *PacmanGame.FOOD_COLOR)
 
     pacman = (45, 26)
-    matrix_panel.offset_canvas.SetPixel(*pacman, *PacmanGame.PACMAN_COLOR)
+    offset_canvas.SetPixel(*pacman, *PacmanGame.PACMAN_COLOR)
 
-    matrix_panel.offset_canvas = matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
+    offset_canvas = matrix_panel.matrix.SwapOnVSync(offset_canvas)
 
     walls = dict([((i, 18), True) for i in range(32, 62)] + [((i, 30), True) for i in range(32, 62)] + 
                  [((32, j), True) for j in range(18, 30)] + [((62, j), True) for j in range(18, 31)])
@@ -243,13 +243,13 @@ class PacmanGame():
         y = (y_old + 1) if roll > 0 else (y_old - 1)
 
       if (x, y) not in walls:
-        matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.PACMAN_COLOR)
-        matrix_panel.offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
-        matrix_panel.offset_canvas = matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
-        time.sleep(0.1)
+        offset_canvas.SetPixel(x, y, *PacmanGame.PACMAN_COLOR)
+        offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
+        offset_canvas = matrix_panel.matrix.SwapOnVSync(offset_canvas)
 
         pacman = (x, y)
-      
+
+      time.sleep(0.5)
 
 
   def read_board_in(self, filename):
@@ -280,11 +280,11 @@ class PacmanGame():
     assert pacman != None, "Pacman has not been initialized"
     return walls, food, power_pellets, blanks, pacman, enemies
 
-  def update_game_state(self, matrix_panel, pitch, roll, volume_level):
+  def update_game_state(self, matrix_panel, offset_canvas, pitch, roll, volume_level):
     # Main function that takes input and makes changes to the game state based on inputs
     
     # First update the Pacman position based on the pitch / roll
-    self.move_pacman(matrix_panel, pitch, roll)
+    self.move_pacman(matrix_panel, offset_canvas, pitch, roll)
 
     # Then have the Enemy/Ghost AI update their positions
     if self.ghosts_active:
@@ -293,7 +293,7 @@ class PacmanGame():
       if self.ghosts_timesteps_left < 0:
         self.ghosts_active = False
     else:
-      self.move_enemies(matrix_panel)
+      self.move_enemies(matrix_panel, offset_canvas)
 
     # Finally check if the "level" has been cleared
     if len(self.food) == 0 and len(self.power_pellets) == 0:
@@ -301,20 +301,20 @@ class PacmanGame():
       self.init_board(matrix_panel)
 
 
-  def init_board(self, matrix_panel, reset=False):
+  def init_board(self, matrix_panel, offset_canvas, reset=False):
     # Called when the matrix panel is first booting up the game OR after a death
     if not reset:
       for x, y in self.walls.keys():
-        matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.WALL_COLOR)
+        offset_canvas.SetPixel(x, y, *PacmanGame.WALL_COLOR)
     for x, y in self.food.keys():
-      matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.FOOD_COLOR)
+      offset_canvas.SetPixel(x, y, *PacmanGame.FOOD_COLOR)
     for x, y in self.power_pellets.keys():
-      matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.POWER_PELLETS_COLOR)
+      offset_canvas.SetPixel(x, y, *PacmanGame.POWER_PELLETS_COLOR)
 
-    matrix_panel.offset_canvas.SetPixel(*self.pacman_init, *PacmanGame.PACMAN_COLOR)
+    offset_canvas.SetPixel(*self.pacman_init, *PacmanGame.PACMAN_COLOR)
 
     for (x, y), enemy_color in zip(self.enemies_init.keys(), PacmanGame.ENEMY_COLORS):
-      matrix_panel.offset_canvas.SetPixel(x, y, *enemy_color)
+      offset_canvas.SetPixel(x, y, *enemy_color)
 
   def update_board(self):
     # Called after the matrix panel has updated the game state
@@ -332,7 +332,7 @@ class PacmanGame():
     #  offset_canvas.SetPixel(x, y, *enemy_color)
     pass
 
-  def move_pacman(self, matrix_panel, pitch, roll):
+  def move_pacman(self, matrix_panel, offset_canvas, pitch, roll):
     x_old, y_old = self.pacman
 
     if abs(pitch) > abs(roll):
@@ -343,10 +343,9 @@ class PacmanGame():
       y = (y_old + 1) % PacmanGame.GAME_BOARD_HEIGHT if roll > 0 else (y_old - 1) % PacmanGame.GAME_BOARD_HEIGHT
 
     if (x, y) not in self.walls and ((x, y) not in self.enemies or self.ghosts_active):
-      print(x, x_old, y, y_old)
-      matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.PACMAN_COLOR)
-      matrix_panel.offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
-      matrix_panel.offset_canvas = matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
+      offset_canvas.SetPixel(x, y, *PacmanGame.PACMAN_COLOR)
+      offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
+      offset_canvas = matrix_panel.matrix.SwapOnVSync(offset_canvas)
 
       self.pacman = (x, y)
       # Only have to update the score if there was movement
@@ -359,7 +358,7 @@ class PacmanGame():
         self.game_over = True
       else:
         # Reset the board
-        self.init_board(matrix_panel, reset=True)
+        self.init_board(matrix_panel, offset_canvas, reset=True)
     elif (x, y) in self.enemies and self.ghosts_active:
       # put ghost in jail
       # TODO
@@ -380,11 +379,11 @@ class PacmanGame():
 
   def display_final_score(self, matrix_panel):
     # Just use draw text to display final score
-    run_text = RunText(f"Game over! Score: {self.score}")
-    run_text.process()
+    #run_text = RunText(f"Game over! Score: {self.score}")
+    #run_text.process()
+    pass
 
-
-  def move_enemies(self, matrix_panel):
+  def move_enemies(self, matrix_panel, offset_canvas):
     for (x_old, y_old), enemy_color in zip(self.enemies.keys(), PacmanGame.ENEMY_COLORS):
       # First check if the enemy is in jail and decrease timesteps for it; move out of jail if needed
 
@@ -393,7 +392,7 @@ class PacmanGame():
       # Make sure ghosts don't collide with walls, each other; collision with pacman?
       x, y = x_old, y_old # TODO
 
-      matrix_panel.offset_canvas.SetPixel(x, y, *enemy_color)
+      #offset_canvas.SetPixel(x, y, *enemy_color)
 
 
   def move_ghosts(self):

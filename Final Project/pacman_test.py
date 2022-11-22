@@ -35,6 +35,10 @@ class SimpleSquare(SampleBase):
             power_pellets[(x, y)] = True
           elif val == "_":
             blanks[(x, y)] = True
+          elif val == "P":
+            pass
+          elif val == "E":
+            pass
           else:
             assert False, f"Character {val} not recognized"
     return walls, dots, power_pellets, blanks
