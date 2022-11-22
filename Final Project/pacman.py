@@ -226,7 +226,7 @@ class PacmanGame():
     pacman = (45, 26)
     offset_canvas.SetPixel(*pacman, *PacmanGame.PACMAN_COLOR)
 
-    offset_canvas = matrix_panel.matrix.SwapOnVSync(offset_canvas)
+    matrix_panel.matrix.SwapOnVSync(offset_canvas)
 
     walls = dict([((i, 18), True) for i in range(32, 62)] + [((i, 30), True) for i in range(32, 62)] + 
                  [((32, j), True) for j in range(18, 30)] + [((62, j), True) for j in range(18, 31)])
@@ -245,7 +245,7 @@ class PacmanGame():
       if (x, y) not in walls:
         offset_canvas.SetPixel(x, y, *PacmanGame.PACMAN_COLOR)
         offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
-        offset_canvas = matrix_panel.matrix.SwapOnVSync(offset_canvas)
+        matrix_panel.matrix.SwapOnVSync(offset_canvas)
 
         pacman = (x, y)
 
