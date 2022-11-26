@@ -21,6 +21,9 @@ while True:
     pitch = math.asin(accXnorm)
     roll = -math.asin(accYnorm / math.cos(pitch))
 
+    # TODO convert pitch, roll back to degrees for easier debugging
+    # TODO gimbal lock issue with 90 deg for pitch which is a problem since cos(90)=0
+
     print("Pitch {%.2f} Roll {%.2f}" % (pitch, roll))
 
     #print("Temperature: %.2f C" % mpu.temperature)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from samplebase import SampleBase
 from runtext import RunText
-import adafruit_mpu6050, board, math, time, threading
+import adafruit_mpu6050, board, math, time, threading, random
 from queue import Queue
 from rgbmatrix import graphics
 
@@ -91,12 +91,16 @@ class PacmanGame():
   PACMAN_BOARD = 'pacman_board_2.txt'
 
   def __init__(self):
-    self.walls, self.food, self.power_pellets, self.blanks, self.pacman_init, self.enemies_init = self.read_board_in(PacmanGame.PACMAN_BOARD)
+    self.walls, self.food, self.power_pellets, self.jail, self.pacman_init, self.enemies_init = self.read_board_in(PacmanGame.PACMAN_BOARD)
     self.pacman, self.enemies = self.pacman_init, self.enemies_init
     self.score = 0
     self.lives = 3
+    self.level = 1 # the game level the player is on, each time they "beat" the game, this increases...
+    self.level_phase = 0 # the game level phase the player is in; progresses from 1 to 4 so the longer they wait the harder it becomes
     self.ghosts_active = False # the position of ghosts and enemies is tracked by the same self.enemies
     self.ghosts_timesteps_left = -1 # Ghosts timesteps left, only used if ghosts are active
+    self.switch_direction = False # whether there is a transition between ghost / enemy mode currently
+    self.scatter_timer = {i: -1 for i in self.enemies.keys()} # map from enemy_idx to the number of timesteps left on its scatter mode
     self.game_over = False
 
   def display_home_screen(self, matrix_panel, offset_canvas, mpu_queue):
@@ -218,9 +222,9 @@ class PacmanGame():
     for y in range(18, 31):
       offset_canvas.SetPixel(62, y, 0, 0, 255)
 
-    dots = [(37, 28), (42, 20), (55, 27), (60, 21)]
+    food = [(37, 28), (42, 20), (55, 27), (60, 21)]
 
-    for x, y in dots:
+    for x, y in food:
       offset_canvas.SetPixel(x, y, *PacmanGame.FOOD_COLOR)
 
     pacman = (45, 26)
@@ -231,7 +235,7 @@ class PacmanGame():
     walls = dict([((i, 18), True) for i in range(32, 62)] + [((i, 30), True) for i in range(32, 62)] + 
                  [((32, j), True) for j in range(18, 30)] + [((62, j), True) for j in range(18, 31)])
 
-    while True:
+    while len(food) != 0:
       pitch, roll = matrix_panel.get_mpu_pitch_roll()
       x_old, y_old = pacman
 
@@ -248,14 +252,35 @@ class PacmanGame():
         matrix_panel.matrix.SwapOnVSync(offset_canvas)
 
         pacman = (x, y)
+        # Only have to check if food was eaten when there was movement
+        if (x, y) in food:
+          food.remove((x, y))
 
       time.sleep(0.5)
+    
+    # Home screen is done, show the 3 ... 2 ... 1 ... GO countdown
+    offset_canvas.Clear()
+    font = graphics.Font()
+    font.LoadFont("fonts/7x13.bdf")
+    textColor = graphics.Color(255, 255, 255)
+    my_text = "3"
+    len = graphics.DrawText(offset_canvas, font, 30, 14, textColor, my_text)
 
+    my_text = "2"
+    len = graphics.DrawText(offset_canvas, font, 30, 14, textColor, my_text)
+
+    my_text = "1"
+    len = graphics.DrawText(offset_canvas, font, 30, 14, textColor, my_text)
+
+    my_text = "GO"
+    len = graphics.DrawText(offset_canvas, font, 30, 14, textColor, my_text)
+    offset_canvas.Clear()
 
   def read_board_in(self, filename):
-    walls, food, power_pellets, blanks = {}, {}, {}, {}
+    walls, food, power_pellets, jail = {}, {}, {}, {}
     pacman = None
     enemies = {}
+    enemy_idx = 0
     with open(filename) as f:
       for y, line in enumerate(f):
         for x, val in enumerate(line):
@@ -269,35 +294,52 @@ class PacmanGame():
             food[(x, y)] = True
           elif val == "S":
             power_pellets[(x, y)] = True
-          elif val == "_" or val == " ":
-            blanks[(x, y)] = True
+          elif val == " ":
+            jail[(x, y)] = True
           elif val == "P":
             pacman = (x, y)
           elif val == "E":
-            enemies[(x, y)] = True
+            enemies[enemy_idx] = [(x, y), (x, y)] # mapping from enemy idx to (current position, old position)
+            enemy_idx += 1
           else:
             assert False, f"Character {val} not recognized"
     assert pacman != None, "Pacman has not been initialized"
-    return walls, food, power_pellets, blanks, pacman, enemies
+    return walls, food, power_pellets, jail, pacman, enemies
 
   def update_game_state(self, matrix_panel, offset_canvas, pitch, roll, volume_level):
     # Main function that takes input and makes changes to the game state based on inputs
-    
+
+    # within a level, change the scatter timer for the enemies based on what phase we are in
+    # phase time = (max(0, 30 - 4*(self.level-1)))
+    # phase 1 = 3 scatter, 1 chasing for int(phase time * 1.2) 
+    # phase 2 = 2 scatter, 2 chasing for int(phase time * 1.1) 
+    # phase 3 = 1 scatter, 3 chasing for int(phase time * 1.0) 
+    # phase 4 = 0 scatter, 4 chasing till end of level
+    if sum(self.scatter_timer.values()) == -len(self.enemies) and self.level_phase != 4: # if scatter timers expired and not in last phase
+      self.level_phase += 1
+      phase_coeff = 1.3 - self.level_phase / 10
+      phase_time = int(max(0, 30 - 4*(self.level-1)) * phase_coeff) if self.level_phase != 4 else -1
+      self.scatter_timer = {i: phase_time if i < self.level_phase else -1 for i in self.enemies.keys()}
+   
     # First update the Pacman position based on the pitch / roll
     self.move_pacman(matrix_panel, offset_canvas, pitch, roll)
 
     # Then have the Enemy/Ghost AI update their positions
     if self.ghosts_active:
-      self.move_ghosts()
+      self.move_ghosts(matrix_panel, offset_canvas)
+      self.switch_direction = False
       self.ghosts_timesteps_left -= 1
-      if self.ghosts_timesteps_left < 0:
+      if self.ghosts_timesteps_left == 0:
         self.ghosts_active = False
+        #self.switch_direction = True
+        self.free_ghosts_from_jail(matrix_panel, offset_canvas)
     else:
       self.move_enemies(matrix_panel, offset_canvas)
+      #self.switch_direction = False
 
     # Finally check if the "level" has been cleared
     if len(self.food) == 0 and len(self.power_pellets) == 0:
-      # TODO maybe load a different board in (involves parsing a new file, setting the walls, food, etc, then init board)
+      self.level += 1
       self.init_board(matrix_panel)
 
 
@@ -342,15 +384,15 @@ class PacmanGame():
       x = x_old
       y = (y_old + 1) % PacmanGame.GAME_BOARD_HEIGHT if roll > 0 else (y_old - 1) % PacmanGame.GAME_BOARD_HEIGHT
 
-    if (x, y) not in self.walls and ((x, y) not in self.enemies or self.ghosts_active):
+    if (x, y) not in self.walls and (self.check_in_enemies_ghosts(x, y) == -1 or self.ghosts_active):
       offset_canvas.SetPixel(x, y, *PacmanGame.PACMAN_COLOR)
       offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
-      offset_canvas = matrix_panel.matrix.SwapOnVSync(offset_canvas)
+      matrix_panel.matrix.SwapOnVSync(offset_canvas)
 
       self.pacman = (x, y)
       # Only have to update the score if there was movement
       self.update_score(x, y)
-    elif (x, y) in self.enemies and not self.ghosts_active:
+    elif self.check_in_enemies_ghosts(x, y) != -1 and not self.ghosts_active:
       self.lives -= 1
       if self.lives == 0:
         # Game over
@@ -359,10 +401,13 @@ class PacmanGame():
       else:
         # Reset the board
         self.init_board(matrix_panel, offset_canvas, reset=True)
-    elif (x, y) in self.enemies and self.ghosts_active:
+    elif self.check_in_enemies_ghosts(x, y) != -1 and self.ghosts_active:
       # put ghost in jail
-      # TODO
-      pass
+      ghost_idx = self.check_in_enemies_ghosts(x, y)
+
+      ghost_x, ghost_y = random.choice(list(self.jail.keys()))
+
+      self.enemies[ghost_idx] = [(ghost_x, ghost_y), (ghost_x, ghost_y)]
 
   def update_score(self, x, y):
     # Only check if the movement was into a food or power pellet square
@@ -373,30 +418,227 @@ class PacmanGame():
     elif (x, y) in self.power_pellets:
       self.score += 50
       self.power_pellets.pop((x, y))
+      self.ghosts_active = True
+      self.switch_direction = True
+      self.ghosts_timesteps_left = max(0, 20 - 4*(self.level-1)) # lvl 1 = 20, 2 = 16, 3 = 12, 4 = 8, 5 = 4, 6+ = 0
     # Ghost could be on a square with food / power pellet in which case pacman would get points for both
-    if (x, y) in self.enemies and self.ghosts_active:
+    if self.check_in_enemies_ghosts(x, y) != -1 and self.ghosts_active:
       self.score += 200
 
   def display_final_score(self, matrix_panel):
-    # Just use draw text to display final score
+    # Just use draw text to display final score and level
     #run_text = RunText(f"Game over! Score: {self.score}")
     #run_text.process()
     pass
 
+  class SearchNode():
+    def __init__(self, coord, parent_coords = []):
+      self.coord = coord
+      self.f = 0
+      self.g = 0
+      self.parent_coords = parent_coords
+
   def move_enemies(self, matrix_panel, offset_canvas):
-    for (x_old, y_old), enemy_color in zip(self.enemies.keys(), PacmanGame.ENEMY_COLORS):
-      # First check if the enemy is in jail and decrease timesteps for it; move out of jail if needed
+    for enemy_idx, coords, enemy_color in zip(self.enemies.items(), PacmanGame.ENEMY_COLORS):
+      x_old, y_old = coords[0] # will be 1 timestep back if a change is made here
+      x_old_2, y_old_2 = coords[1] # will be 2 timesteps back if a change is made here
+
+      # if switch direction, just go back to the last tile that you were at
+      #if self.switch_direction:
+      #  x, y = x_old_2, y_old_2
 
       # First figure out the next best position for this enemy to move
       # Two modes: follow player, ambush player 
       # Make sure ghosts don't collide with walls, each other; collision with pacman?
-      x, y = x_old, y_old # TODO
 
-      #offset_canvas.SetPixel(x, y, *enemy_color)
+      # if statements to determine timings for scatter mode, chase mode and then also movement according to those modes
 
+      #if ghost in scatter mode then call enemy_scatter
+      if self.scatter_timer[enemy_idx] > 0:
+        self.scatter_timer[enemy_idx] -= 1
 
-  def move_ghosts(self):
-    pass
+      if self.scatter_timer[enemy_idx] > 0:
+        x, y = self.enemy_scatter(enemy_idx, x_old, y_old)
+      else:
+        x, y = self.enemy_chase(enemy_idx, x_old, y_old)
+
+      # after a movement has been decided, update self.enemies
+      self.enemies[enemy_idx] = [(x, y), (x_old, y_old)]
+      # set the color of the old square to what it was before the ghost was there
+      offset_canvas.SetPixel(x, y, *enemy_idx)
+      if (x_old, y_old) in self.food:
+        offset_canvas.SetPixel(x_old, y_old, *PacmanGame.FOOD_COLOR)
+      elif (x_old, y_old) in self.power_pellets:
+        offset_canvas.SetPixel(x_old, y_old, *PacmanGame.POWER_PELLETS_COLOR)
+      else:
+        offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
+      matrix_panel.matrix.SwapOnVSync(offset_canvas)
+
+  def enemy_scatter(self, enemy_idx, x_old, y_old):
+    # the enemy is scattering itself around the board
+    #scatter_out_of_bounds_coords = [(-5, -5), (69, 5), (-5, 37), (69, 37)]
+    scatter_coords = [(2, 2), (2, 61), (31, 2), (31, 61)]
+
+    # get all the possible coordinates the enemy can move to
+
+    # in that list, if length of list > 1, remove the option to return to the square from which they came
+    # if there are still multiple options, then randomly select one and move else just move to the option that is left
+    possible_coords = self.get_possible_coordinates(x_old, y_old)
+    if len(possible_coords) > 1 and (x_old, y_old) in possible_coords: # always want "forward" movement
+      possible_coords.remove((x_old, y_old))
+    if len(possible_coords) == 0:
+      print("WARNING: No possible coordinates for the enemy to move.")
+      x, y = x_old, y_old
+    elif len(possible_coords) == 1:
+      # No need to run the algorithm if there is one position you can go
+      x, y = possible_coords[0]
+    else:
+      # have multiple choices, pick the best choice based on...
+      # euclidean distance? dfs? bfs? a*
+      # take into account: target coordinate (pacman position or out of bounds scatter position), 
+      # distances to food clumps, other enemy positions, path
+      x, y = self.bfs((x_old, y_old), scatter_coords[enemy_idx])
+      '''
+      distances = {}
+      for x_poss, y_poss in possible_coords:
+        dist = math.sqrt(abs(x_poss-x_old)**2 + abs(y_poss-y_old)**2)
+        distances[dist] = (x_poss, y_poss)
+      x, y = distances[min(list(distances.keys()))]
+      '''
+    return x, y
+      
+  def bfs(self, ghost_pos, target_pos):
+    closed = set() # like "visited" set
+    open = [] # the active queue for positions to explore
+    open.append(PacmanGame.SearchNode(ghost_pos))
+    goal_node = PacmanGame.SearchNode(target_pos)
+
+    while len(open) > 0:
+      index = 0
+      expanding_node = open[0]
+      for i in range(len(open)):
+        if expanding_node.f > open[i].f:
+          expanding_node = open[i]
+          index = i
+      
+      closed.add(open.pop(index).coord)
+
+      if expanding_node.coord == goal_node.coord:
+        goal_node = expanding_node
+        # the shortest path to goal node is guaranteed by bfs
+        return goal_node.parent_coords[0]
+
+      expanding_node_x, expanding_node_y = expanding_node.coord
+
+      possible_coords = self.get_possible_coordinates(expanding_node_x, expanding_node_y)
+      possible_coords = [PacmanGame.SearchNode(c, expanding_node.parent_coords + [expanding_node.coord]) for c in possible_coords if c not in closed]
+
+      # the coordinates that remain are viable candidates for expansion
+      for search_node in possible_coords:
+        search_node.g = expanding_node.g + 1
+        search_node.f = search_node.g
+        open.append(search_node)
+
+    print("BFS did not work, picking randomly")
+    possible_coords = self.get_possible_coordinates(*ghost_pos)
+    return random.choice(possible_coords) if len(possible_coords) > 0 else ghost_pos
+
+  def enemy_chase(self, enemy_idx, x_old, y_old):
+    # get all the possible coordinates the enemy can move to
+
+    # in that list, if length of list > 1, remove the option to return to the square from which they came
+    # if there are still multiple options, then randomly select one and move else just move to the option that is left
+    possible_coords = self.get_possible_coordinates(x_old, y_old)
+    if len(possible_coords) > 1 and (x_old, y_old) in possible_coords: # always want "forward" movement
+      possible_coords.remove((x_old, y_old))
+    if len(possible_coords) == 0:
+      print("WARNING: No possible coordinates for the enemy to move.")
+      x, y = x_old, y_old
+    elif len(possible_coords) == 1:
+      # No need to run the algorithm if there is one position you can go
+      x, y = possible_coords[0]
+    else:
+      # have multiple choices, pick the best choice based on...
+      # euclidean distance? dfs? bfs? a*
+      # take into account: target coordinate (pacman position or out of bounds scatter position), 
+      # distances to food clumps, other enemy positions, path
+      x, y = self.bfs((x_old, y_old), self.pacman)
+      '''
+      distances = {}
+      for x_poss, y_poss in possible_coords:
+        dist = math.sqrt(abs(x_poss-x_old)**2 + abs(y_poss-y_old)**2)
+        distances[dist] = (x_poss, y_poss)
+      x, y = distances[min(list(distances.keys()))]
+      '''
+    return x, y
+
+  def move_ghosts(self, matrix_panel, offset_canvas):
+    # No specific target tile, pseudorandomly decide which turns to make at every intersection
+    for ghost_idx, coords, ghost_color in zip(self.enemies.items(), PacmanGame.GHOST_COLORS):
+      x_old, y_old = coords[0] # will be 1 timestep back if a change is made here
+      x_old_2, y_old_2 = coords[1] # will be 2 timesteps back if a change is made here
+      
+      # first if they are in jail, do nothing
+      if self.check_in_jail(x_old, y_old):
+        continue
+
+      # if switch direction, just go back to the last tile that you were at
+      if self.switch_direction:
+        x, y = x_old_2, y_old_2
+      else:
+        # else get a list of possible coordinates that they can move to
+        # in that list, if length of list > 1, remove the option to return to the square from which they came
+        # if there are still multiple options, then randomly select one and move else just move to the option that is left
+        possible_coords = self.get_possible_coordinates(x_old, y_old)
+        if len(possible_coords) > 1 and (x_old, y_old) in possible_coords: # always want "forward" movement
+          possible_coords.remove((x_old, y_old))
+        if len(possible_coords) == 0:
+          print("WARNING: No possible coordinates for the ghost to move.")
+          x, y = x_old, y_old
+        else:
+          x, y = random.choice(possible_coords)
+
+      # after a movement has been decided update self.enemies and 
+      # set the color of the old square to what it was before the ghost was there
+      self.enemies[ghost_idx] = [(x, y), (x_old, y_old)]
+      offset_canvas.SetPixel(x, y, *ghost_color)
+      if (x_old, y_old) in self.food:
+        offset_canvas.SetPixel(x_old, y_old, *PacmanGame.FOOD_COLOR)
+      elif (x_old, y_old) in self.power_pellets:
+        offset_canvas.SetPixel(x_old, y_old, *PacmanGame.POWER_PELLETS_COLOR)
+      else:
+        offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
+      matrix_panel.matrix.SwapOnVSync(offset_canvas)
+
+  def free_ghosts_from_jail(self, matrix_panel, offset_canvas):
+    # TODO: check these starting coordinates
+    starting_coords = [[(13, 30), (13, 30)], [(13, 33), (13, 33)], [(21, 29), (21, 29)], [(21, 34), (21, 34)]]
+    for enemy_idx, coords, enemy_color in zip(self.enemies.items(), PacmanGame.ENEMY_COLORS):
+      x_old, y_old = coords[0] # position inside jail
+      x, y = starting_coords[enemy_idx][0] # position outside jail
+
+      self.enemies[enemy_idx] = starting_coords[enemy_idx]
+      offset_canvas.SetPixel(x, y, *enemy_color)
+      offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
+      matrix_panel.matrix.SwapOnVSync(offset_canvas)
+
+  def check_in_jail(self, x, y):
+    return (x, y) in self.jail.keys()
+
+  def check_in_enemies_ghosts(self, x, y):
+    for enemy_idx, coords in self.enemies.items():
+      if x == coords[0][0] and y == coords[0][1]:
+        return enemy_idx
+    return -1
+
+  def get_possible_coordinates(self, x_old, y_old):
+    # For use by the ghost or enemy
+    possible_coords = [(x_old-1, y_old), (x_old+1, y_old), (x_old, y_old-1), (x_old, y_old+1)]
+    final_possible_coords = []
+    for c in possible_coords:
+      if c not in self.walls and not self.check_in_jail(*c): # not wall, jail
+        final_possible_coords.append(c)
+    return final_possible_coords
   
 if __name__ == "__main__":  
   mpu_queue = Queue()
