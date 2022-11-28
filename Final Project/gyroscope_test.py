@@ -13,7 +13,7 @@ while True:
     x_accel, y_accel, z_accel = mpu.acceleration
     x_gyro, y_gyro, z_gyro = mpu.gyro
     #print("Acceleration: X:%.2f, Y: %.2f, Z: %.2f m/s^2" % (x_accel, y_accel, z_accel))
-    print("Gyro X:%.2f, Y: %.2f, Z: %.2f rad/s" % (x_gyro, y_gyro, z_gyro))
+    #print("Gyro X:%.2f, Y: %.2f, Z: %.2f rad/s" % (x_gyro, y_gyro, z_gyro))
 
     accXnorm = x_accel / math.sqrt((x_accel * x_accel) + (y_accel * y_accel) + (z_accel * z_accel))
     accYnorm = y_accel / math.sqrt((x_accel * x_accel) + (y_accel * y_accel) + (z_accel * z_accel))
@@ -23,6 +23,8 @@ while True:
 
     # TODO convert pitch, roll back to degrees for easier debugging
     # TODO gimbal lock issue with 90 deg for pitch which is a problem since cos(90)=0
+    pitch = (pitch * 360) / (2*math.pi)
+    roll = (roll * 360) / (2*math.pi)
 
     print("Pitch {%.2f} Roll {%.2f}" % (pitch, roll))
 

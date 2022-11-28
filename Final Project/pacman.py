@@ -18,8 +18,12 @@ def read_pitch_roll(mpu, mpu_queue):
     pitch = math.asin(accXnorm)
     roll = -math.asin(accYnorm / math.cos(pitch))
 
+    pitch = (pitch * 360) / (2*math.pi)
+    roll = (roll * 360) / (2*math.pi)
+
     #print("Pitch {%.2f} Roll {%.2f}" % (pitch, roll))
     mpu_queue.put((pitch, roll))
+    time.sleep(PacmanGame.MPU_READING_THRESHOLD)
 
 def read_volume():
   pass
@@ -39,7 +43,6 @@ class MatrixPanel(SampleBase):
       self.game.display_home_screen(self, offset_canvas, mpu_queue)
       # When that is done, show the game board
       self.game.init_board(self, offset_canvas)
-
       while not self.game.game_over:
         # Get the inputs synchronously
         pitch, roll = self.get_mpu_pitch_roll()
@@ -47,8 +50,7 @@ class MatrixPanel(SampleBase):
 
         # Update the game state and screen, every game should have a main function
         self.game.update_game_state(self, offset_canvas, pitch, roll, volume_level)
-          
-        time.sleep(0.05)
+        time.sleep(PacmanGame.MPU_READING_THRESHOLD)
       
       # Game is over; go back to home screen
       self.game = PacmanGame() # reset the game state
@@ -59,6 +61,7 @@ class MatrixPanel(SampleBase):
   
   def get_volume_level(self):
     # TODO: from the other thread get the volume level info
+    # should influence the MPU_READING_THRESHOLD somewhere after calling this function
     return None
 
 
@@ -89,6 +92,10 @@ class PacmanGame():
   GAME_BOARD_HEIGHT = 32
 
   PACMAN_BOARD = 'pacman_board_2.txt'
+
+  PITCH_THRESHOLD = -25
+  ROLL_THRESHOLD = 7
+  MPU_READING_THRESHOLD = 0.05 # seconds
 
   def __init__(self):
     self.walls, self.food, self.power_pellets, self.jail, self.pacman_init, self.enemies_init = self.read_board_in(PacmanGame.PACMAN_BOARD)
@@ -222,9 +229,10 @@ class PacmanGame():
     for y in range(18, 31):
       offset_canvas.SetPixel(62, y, 0, 0, 255)
 
-    food = [(37, 28), (42, 20), (55, 27), (60, 21)]
+    homescreen_food = {(37, 28):True, (42, 20):True, (55, 27):True, (60, 21):True}
+    print(homescreen_food, type(homescreen_food))
 
-    for x, y in food:
+    for x, y in homescreen_food.keys():
       offset_canvas.SetPixel(x, y, *PacmanGame.FOOD_COLOR)
 
     pacman = (45, 26)
@@ -235,16 +243,16 @@ class PacmanGame():
     walls = dict([((i, 18), True) for i in range(32, 62)] + [((i, 30), True) for i in range(32, 62)] + 
                  [((32, j), True) for j in range(18, 30)] + [((62, j), True) for j in range(18, 31)])
 
-    while len(food) != 0:
+    while False: #homescreen_food != {}: #len(homescreen_food.keys()) != 0: # TODO fix this
       pitch, roll = matrix_panel.get_mpu_pitch_roll()
       x_old, y_old = pacman
 
-      if abs(pitch) > abs(roll):
-        x = (x_old + 1) if pitch > 0 else (x_old - 1)
-        y = y_old
-      else:
+      if abs(pitch - PacmanGame.PITCH_THRESHOLD) > abs(roll - PacmanGame.ROLL_THRESHOLD):
         x = x_old
-        y = (y_old + 1) if roll > 0 else (y_old - 1)
+        y = (y_old + 1) if pitch < PacmanGame.PITCH_THRESHOLD else (y_old - 1)
+      else:
+        x = (x_old + 1) if roll < PacmanGame.ROLL_THRESHOLD else (x_old - 1)
+        y = y_old
 
       if (x, y) not in walls:
         offset_canvas.SetPixel(x, y, *PacmanGame.PACMAN_COLOR)
@@ -253,10 +261,10 @@ class PacmanGame():
 
         pacman = (x, y)
         # Only have to check if food was eaten when there was movement
-        if (x, y) in food:
-          food.remove((x, y))
+        if (x, y) in homescreen_food:
+          homescreen_food.pop((x, y))
 
-      time.sleep(0.5)
+      time.sleep(PacmanGame.MPU_READING_THRESHOLD)
     
     # Home screen is done, show the 3 ... 2 ... 1 ... GO countdown
     offset_canvas.Clear()
@@ -264,16 +272,23 @@ class PacmanGame():
     font.LoadFont("fonts/7x13.bdf")
     textColor = graphics.Color(255, 255, 255)
     my_text = "3"
-    len = graphics.DrawText(offset_canvas, font, 30, 14, textColor, my_text)
+    len = graphics.DrawText(offset_canvas, font, 29, 18, textColor, my_text)
+    time.sleep(1.0)
+    offset_canvas.Clear()
 
     my_text = "2"
-    len = graphics.DrawText(offset_canvas, font, 30, 14, textColor, my_text)
+    len = graphics.DrawText(offset_canvas, font, 29, 18, textColor, my_text)
+    time.sleep(1.0)
+    offset_canvas.Clear()
 
     my_text = "1"
-    len = graphics.DrawText(offset_canvas, font, 30, 14, textColor, my_text)
+    len = graphics.DrawText(offset_canvas, font, 29, 18, textColor, my_text)
+    time.sleep(1.0)
+    offset_canvas.Clear()
 
     my_text = "GO"
-    len = graphics.DrawText(offset_canvas, font, 30, 14, textColor, my_text)
+    len = graphics.DrawText(offset_canvas, font, 26, 18, textColor, my_text)
+    time.sleep(1.0)
     offset_canvas.Clear()
 
   def read_board_in(self, filename):
@@ -301,6 +316,8 @@ class PacmanGame():
           elif val == "E":
             enemies[enemy_idx] = [(x, y), (x, y)] # mapping from enemy idx to (current position, old position)
             enemy_idx += 1
+          elif val == "_":
+            pass # blank space means there is no food, enemy, jail, etc on that square
           else:
             assert False, f"Character {val} not recognized"
     assert pacman != None, "Pacman has not been initialized"
@@ -355,7 +372,8 @@ class PacmanGame():
 
     offset_canvas.SetPixel(*self.pacman_init, *PacmanGame.PACMAN_COLOR)
 
-    for (x, y), enemy_color in zip(self.enemies_init.keys(), PacmanGame.ENEMY_COLORS):
+    for (enemy_idx, coords), enemy_color in zip(self.enemies_init.items(), PacmanGame.ENEMY_COLORS):
+      x, y = coords[0]
       offset_canvas.SetPixel(x, y, *enemy_color)
 
   def update_board(self):
@@ -376,13 +394,18 @@ class PacmanGame():
 
   def move_pacman(self, matrix_panel, offset_canvas, pitch, roll):
     x_old, y_old = self.pacman
-
-    if abs(pitch) > abs(roll):
-      x = (x_old + 1) % PacmanGame.GAME_BOARD_LENGTH if pitch > 0 else (x_old - 1) % PacmanGame.GAME_BOARD_LENGTH 
-      y = y_old
-    else:
+    #if abs(pitch - PacmanGame.PITCH_THRESHOLD) > abs(roll - PacmanGame.ROLL_THRESHOLD):
+    #  x = x_old
+    #  y = (y_old + 1) % PacmanGame.GAME_BOARD_HEIGHT if pitch < PacmanGame.PITCH_THRESHOLD else (y_old - 1) % PacmanGame.GAME_BOARD_HEIGHT
+    #else:
+    #  x = (x_old + 1) % PacmanGame.GAME_BOARD_LENGTH if roll < PacmanGame.ROLL_THRESHOLD else (x_old - 1) % PacmanGame.GAME_BOARD_LENGTH 
+    #  y = y_old
+    if abs(pitch - PacmanGame.PITCH_THRESHOLD) > abs(roll - PacmanGame.ROLL_THRESHOLD):
       x = x_old
-      y = (y_old + 1) % PacmanGame.GAME_BOARD_HEIGHT if roll > 0 else (y_old - 1) % PacmanGame.GAME_BOARD_HEIGHT
+      y = (y_old + 1) if pitch < PacmanGame.PITCH_THRESHOLD else (y_old - 1)
+    else:
+      x = (x_old + 1) if roll < PacmanGame.ROLL_THRESHOLD else (x_old - 1)
+      y = y_old
 
     if (x, y) not in self.walls and (self.check_in_enemies_ghosts(x, y) == -1 or self.ghosts_active):
       offset_canvas.SetPixel(x, y, *PacmanGame.PACMAN_COLOR)
@@ -439,7 +462,7 @@ class PacmanGame():
       self.parent_coords = parent_coords
 
   def move_enemies(self, matrix_panel, offset_canvas):
-    for enemy_idx, coords, enemy_color in zip(self.enemies.items(), PacmanGame.ENEMY_COLORS):
+    for (enemy_idx, coords), enemy_color in zip(self.enemies.items(), PacmanGame.ENEMY_COLORS):
       x_old, y_old = coords[0] # will be 1 timestep back if a change is made here
       x_old_2, y_old_2 = coords[1] # will be 2 timesteps back if a change is made here
 
@@ -452,6 +475,7 @@ class PacmanGame():
       # Make sure ghosts don't collide with walls, each other; collision with pacman?
 
       # if statements to determine timings for scatter mode, chase mode and then also movement according to those modes
+      print("OKHERE")
 
       #if ghost in scatter mode then call enemy_scatter
       if self.scatter_timer[enemy_idx] > 0:
@@ -465,7 +489,7 @@ class PacmanGame():
       # after a movement has been decided, update self.enemies
       self.enemies[enemy_idx] = [(x, y), (x_old, y_old)]
       # set the color of the old square to what it was before the ghost was there
-      offset_canvas.SetPixel(x, y, *enemy_idx)
+      offset_canvas.SetPixel(x, y, *enemy_color)
       if (x_old, y_old) in self.food:
         offset_canvas.SetPixel(x_old, y_old, *PacmanGame.FOOD_COLOR)
       elif (x_old, y_old) in self.power_pellets:
@@ -497,14 +521,14 @@ class PacmanGame():
       # euclidean distance? dfs? bfs? a*
       # take into account: target coordinate (pacman position or out of bounds scatter position), 
       # distances to food clumps, other enemy positions, path
-      x, y = self.bfs((x_old, y_old), scatter_coords[enemy_idx])
-      '''
+      #x, y = self.bfs((x_old, y_old), scatter_coords[enemy_idx])
+
       distances = {}
       for x_poss, y_poss in possible_coords:
         dist = math.sqrt(abs(x_poss-x_old)**2 + abs(y_poss-y_old)**2)
         distances[dist] = (x_poss, y_poss)
       x, y = distances[min(list(distances.keys()))]
-      '''
+
     return x, y
       
   def bfs(self, ghost_pos, target_pos):
@@ -562,19 +586,19 @@ class PacmanGame():
       # euclidean distance? dfs? bfs? a*
       # take into account: target coordinate (pacman position or out of bounds scatter position), 
       # distances to food clumps, other enemy positions, path
-      x, y = self.bfs((x_old, y_old), self.pacman)
-      '''
+      #x, y = self.bfs((x_old, y_old), self.pacman)
+      
       distances = {}
       for x_poss, y_poss in possible_coords:
         dist = math.sqrt(abs(x_poss-x_old)**2 + abs(y_poss-y_old)**2)
         distances[dist] = (x_poss, y_poss)
       x, y = distances[min(list(distances.keys()))]
-      '''
+
     return x, y
 
   def move_ghosts(self, matrix_panel, offset_canvas):
     # No specific target tile, pseudorandomly decide which turns to make at every intersection
-    for ghost_idx, coords, ghost_color in zip(self.enemies.items(), PacmanGame.GHOST_COLORS):
+    for (ghost_idx, coords), ghost_color in zip(self.enemies.items(), PacmanGame.GHOST_COLORS):
       x_old, y_old = coords[0] # will be 1 timestep back if a change is made here
       x_old_2, y_old_2 = coords[1] # will be 2 timesteps back if a change is made here
       
@@ -613,7 +637,7 @@ class PacmanGame():
   def free_ghosts_from_jail(self, matrix_panel, offset_canvas):
     # TODO: check these starting coordinates
     starting_coords = [[(13, 30), (13, 30)], [(13, 33), (13, 33)], [(21, 29), (21, 29)], [(21, 34), (21, 34)]]
-    for enemy_idx, coords, enemy_color in zip(self.enemies.items(), PacmanGame.ENEMY_COLORS):
+    for (enemy_idx, coords), enemy_color in zip(self.enemies.items(), PacmanGame.ENEMY_COLORS):
       x_old, y_old = coords[0] # position inside jail
       x, y = starting_coords[enemy_idx][0] # position outside jail
 
