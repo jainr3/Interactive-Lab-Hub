@@ -31,7 +31,7 @@ class MatrixPanel(SampleBase):
 
         # Update the game state and screen, every game should have a main function
         self.game.update_game_state(self, pitch, roll, volume_level)
-        time.sleep(self.game_speed)
+        time.sleep(self.game.game_speed)
 
       # Game is over; go back to home screen
       self.game = PacmanGame() # reset the game state
@@ -309,7 +309,7 @@ class PacmanGame():
     # Change the game speed based on the volume level 0.05 (fast speed = high volume) to 0.3 (slow speed = low volume)
     # fixed vals scheme: > 70 = high, < 25 = low, middle
     # smooth function scheme: roughly > 100 capped at 0.05; < 10 capped at 0.4
-    self.game_speed = volume_level * (0.05 - 0.4) / (100 - 10) + 0.45
+    self.game_speed = max(0, volume_level * (0.05 - 0.1) / (100 - 10) + 0.1)
     print(self.game_speed, volume_level)
 
     # within a level, change the scatter timer for the enemies based on what phase we are in

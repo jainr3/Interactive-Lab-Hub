@@ -33,6 +33,9 @@ def read_pitch_roll(mpu, mpu_queue):
     accYnorm = y_accel / math.sqrt((x_accel * x_accel) + (y_accel * y_accel) + (z_accel * z_accel))
 
     pitch = math.asin(accXnorm)
+    # TODO Prevent math.cos(90)=0
+    # TODO Prevent math.asin(-pi/2)
+    # e.g pitch= -1.5496053923303592 accYnorm=-0.021189348515151543 caused error
     roll = -math.asin(accYnorm / math.cos(pitch))
 
     pitch = (pitch * 360) / (2*math.pi)
