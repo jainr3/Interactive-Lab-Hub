@@ -1,44 +1,18 @@
 #!/usr/bin/env python
-from samplebase import SampleBase
+from samplebase import SampleBase # seperate file
 from runtext import RunText
 import adafruit_mpu6050, board, math, time, threading, random
 from queue import Queue
 from rgbmatrix import graphics
+import pacman_sensors # my file
 
 SKIP_HOMESCREEN = True
 
-def read_pitch_roll(mpu, mpu_queue):
-  while True:
-    x_accel, y_accel, z_accel = mpu.acceleration
-    x_gyro, y_gyro, z_gyro = mpu.gyro
-    #print("Acceleration: X:%.2f, Y: %.2f, Z: %.2f m/s^2" % (x_accel, y_accel, z_accel))
-    #print("Gyro X:%.2f, Y: %.2f, Z: %.2f rad/s" % (x_gyro, y_gyro, z_gyro))
-
-    accXnorm = x_accel / math.sqrt((x_accel * x_accel) + (y_accel * y_accel) + (z_accel * z_accel))
-    accYnorm = y_accel / math.sqrt((x_accel * x_accel) + (y_accel * y_accel) + (z_accel * z_accel))
-
-    pitch = math.asin(accXnorm)
-    roll = -math.asin(accYnorm / math.cos(pitch))
-
-    pitch = (pitch * 360) / (2*math.pi)
-    roll = (roll * 360) / (2*math.pi)
-
-    #print("Pitch {%.2f} Roll {%.2f}" % (pitch, roll))
-    # empty out the queue before adding stuff to it, so that when 
-    # it is read from elsewhere the latest reading is taken
-    with mpu_queue.mutex: 
-      mpu_queue.queue.clear()
-    mpu_queue.put((pitch, roll))
-
-def read_volume():
-  pass
-
-
-
 class MatrixPanel(SampleBase):
-  def __init__(self, mpu_queue, *args, **kwargs):
+  def __init__(self, mpu_queue, volume_queue, *args, **kwargs):
     super(MatrixPanel, self).__init__(*args, **kwargs)
     self.mpu_queue = mpu_queue
+    self.volume_queue = volume_queue
     self.game = PacmanGame() # configure this if we want multiple games
     self.offset_canvas = None # init elsewhere
 
@@ -57,8 +31,8 @@ class MatrixPanel(SampleBase):
 
         # Update the game state and screen, every game should have a main function
         self.game.update_game_state(self, pitch, roll, volume_level)
-        time.sleep(0.05)
-      
+        time.sleep(self.game_speed)
+
       # Game is over; go back to home screen
       self.game = PacmanGame() # reset the game state
     
@@ -67,9 +41,8 @@ class MatrixPanel(SampleBase):
     return self.mpu_queue.get()
   
   def get_volume_level(self):
-    # TODO: from the other thread get the volume level info
     # should influence the pacman speed somewhere after calling this function
-    return None
+    return self.volume_queue.get()
 
 
 class PacmanGame():
@@ -83,17 +56,17 @@ class PacmanGame():
   #ENEMY_PINKY_COLOR = (255, 184, 255) # PINK
   #ENEMY_INKY_COLOR = (0, 255, 255) # AQUA
   #ENEMY_FUNKY_COLOR = (0, 255, 0) # GREEN
-  #ENEMY_SUE_COLOR = (128, 0, 128) # PURPLE
+  ENEMY_SUE_COLOR = (128, 0, 128) # PURPLE
   #ENEMY_CLYDE_COLOR = (255, 184, 82) # ORANGE
-  ENEMY_COLORS = [ENEMY_BLINKY_COLOR, ENEMY_BLINKY_COLOR, ENEMY_BLINKY_COLOR, ENEMY_BLINKY_COLOR]
+  ENEMY_COLORS = [ENEMY_SUE_COLOR, ENEMY_SUE_COLOR, ENEMY_SUE_COLOR, ENEMY_SUE_COLOR]
 
   #GHOST_BLINKY_COLOR = (255, 127, 127) # LIGHT RED
   #GHOST_PINKY_COLOR = (255, 182, 193) # LIGHT PINK
-  GHOST_INKY_COLOR = (203, 255, 245) # LIGHT AQUA
+  #GHOST_INKY_COLOR = (203, 255, 245) # LIGHT AQUA
   #GHOST_FUNKY_COLOR = (144, 238, 144) # LIGHT GREEN
-  #GHOST_SUE_COLOR = (203, 195, 227) # LIGHT PURPLE
+  GHOST_SUE_COLOR = (203, 195, 227) # LIGHT PURPLE
   #GHOST_CLYDE_COLOR = (255, 213, 128) # LIGHT ORANGE
-  GHOST_COLORS = [GHOST_INKY_COLOR, GHOST_INKY_COLOR, GHOST_INKY_COLOR, GHOST_INKY_COLOR]
+  GHOST_COLORS = [GHOST_SUE_COLOR, GHOST_SUE_COLOR, GHOST_SUE_COLOR, GHOST_SUE_COLOR]
 
   GAME_BOARD_LENGTH = 62 # leave 2 pixel cols on right side for score / lives
   GAME_BOARD_HEIGHT = 32
@@ -106,12 +79,12 @@ class PacmanGame():
 
   def __init__(self):
     self.walls, self.food, self.power_pellets, self.jail, self.pacman_init, self.enemies_init = self.read_board_in(PacmanGame.PACMAN_BOARD)
-    self.pacman, self.enemies = self.pacman_init, self.enemies_init
+    self.pacman, self.enemies = self.pacman_init, self.enemies_init.copy()
     self.score = 0
     self.lives = 3
     self.level = 1 # the game level the player is on, each time they "beat" the game, this increases...
     self.level_phase = 0 # the game level phase the player is in; progresses from 1 to 4 so the longer they wait the harder it becomes
-    self.pacman_speed = 0.05 # seconds; this is influenced by the volume level
+    self.game_speed = 0.05 # seconds; this is influenced by the volume level
     self.ghosts_active = False # the position of ghosts and enemies is tracked by the same self.enemies
     self.ghosts_timesteps_left = -1 # Ghosts timesteps left, only used if ghosts are active
     self.switch_direction = False # whether there is a transition between ghost / enemy mode currently
@@ -271,7 +244,7 @@ class PacmanGame():
         if (x, y) in homescreen_food:
           homescreen_food.pop((x, y))
 
-      time.sleep(self.pacman_speed)
+      time.sleep(self.game_speed)
     
     # Home screen is done, show the 3 ... 2 ... 1 ... GO countdown
     matrix_panel.offset_canvas.Clear()
@@ -333,17 +306,24 @@ class PacmanGame():
   def update_game_state(self, matrix_panel, pitch, roll, volume_level):
     # Main function that takes input and makes changes to the game state based on inputs
 
+    # Change the game speed based on the volume level 0.05 (fast speed = high volume) to 0.3 (slow speed = low volume)
+    # fixed vals scheme: > 70 = high, < 25 = low, middle
+    # smooth function scheme: roughly > 100 capped at 0.05; < 10 capped at 0.4
+    self.game_speed = volume_level * (0.05 - 0.4) / (100 - 10) + 0.45
+    print(self.game_speed, volume_level)
+
     # within a level, change the scatter timer for the enemies based on what phase we are in
     # phase time = (max(0, X - 4*(self.level-1)))
-    # phase 1 = 3 scatter, 1 chasing for int(phase time * 1.2) 
-    # phase 2 = 2 scatter, 2 chasing for int(phase time * 1.1) 
-    # phase 3 = 1 scatter, 3 chasing for int(phase time * 1.0) 
-    # phase 4 = 0 scatter, 4 chasing till end of level
-    if sum(self.scatter_timer.values()) == -len(self.enemies) and self.level_phase != 4: # if scatter timers expired and not in last phase
+    # phase 1 = 4 scatter, 0 chasing for int(phase_time * 1.3)
+    # phase 2 = 3 scatter, 1 chasing for int(phase time * 1.2) 
+    # phase 3 = 2 scatter, 2 chasing for int(phase time * 1.1) 
+    # phase 4 = 1 scatter, 3 chasing for int(phase time * 1.0) 
+    # phase 5 = 0 scatter, 4 chasing till end of level
+    if sum(self.scatter_timer.values()) == -len(self.enemies) and self.level_phase != 5: # if scatter timers expired and not in last phase
       self.level_phase += 1
-      phase_coeff = 1.3 - self.level_phase / 10
-      phase_time = int(max(0, 100 - 4*(self.level-1)) * phase_coeff) if self.level_phase != 4 else -1
-      self.scatter_timer = {i: -1 if i < self.level_phase else phase_time for i in self.enemies.keys()}
+      phase_coeff = 1.4 - self.level_phase / 10
+      phase_time = int(max(0, 100 - 4*(self.level-1)) * phase_coeff) if self.level_phase != 5 else -1
+      self.scatter_timer = {i: -1 if i < self.level_phase-1 else phase_time for i in self.enemies.keys()}
    
     # First update the Pacman position based on the pitch / roll
     self.move_pacman(matrix_panel, pitch, roll)
@@ -368,7 +348,8 @@ class PacmanGame():
 
 
   def init_board(self, matrix_panel, reset=False):
-    # Called when the matrix panel is first booting up the game OR after a death
+    # Called when the matrix panel is first booting up the game OR after a death OR if you clear a level
+    # reset flag is only True for after a death
     if not reset:
       for x, y in self.walls.keys():
         matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.WALL_COLOR)
@@ -377,11 +358,28 @@ class PacmanGame():
     for x, y in self.power_pellets.keys():
       matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.POWER_PELLETS_COLOR)
 
+    if reset:
+      # Clear the pacman's old position
+      x_old, y_old = self.pacman
+      matrix_panel.offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
+      # Clear the enemies old position
+      for (enemy_idx, coords), enemy_color in zip(self.enemies.items(), PacmanGame.ENEMY_COLORS):
+        x, y = coords[0]
+        if (x, y) in self.food:
+          matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.FOOD_COLOR)
+        elif (x, y) in self.power_pellets:
+          matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.POWER_PELLETS_COLOR)
+        elif (x, y) != self.pacman_init: # only reset if not in pacman's start
+          matrix_panel.offset_canvas.SetPixel(x, y, 0, 0, 0)
+    
+    # Set the pacman's current position
     matrix_panel.offset_canvas.SetPixel(*self.pacman_init, *PacmanGame.PACMAN_COLOR)
-
+    
+    # Set the enemies current position
     for (enemy_idx, coords), enemy_color in zip(self.enemies_init.items(), PacmanGame.ENEMY_COLORS):
       x, y = coords[0]
       matrix_panel.offset_canvas.SetPixel(x, y, *enemy_color)
+    matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
 
   def move_pacman(self, matrix_panel, pitch, roll):
     x_old, y_old = self.pacman
@@ -400,7 +398,7 @@ class PacmanGame():
       self.pacman = (x, y)
       # Only have to update the score if there was movement
       self.update_score(x, y)
-    elif self.check_in_enemies_ghosts(x, y) != -1 and not self.ghosts_active:
+    elif (self.check_in_enemies_ghosts(x, y) != -1 or ((x, y) in self.walls and self.check_in_enemies_ghosts(x_old, y_old) != -1)) and not self.ghosts_active:
       self.lives -= 1
       if self.lives == 0:
         # Game over
@@ -411,10 +409,9 @@ class PacmanGame():
         self.init_board(matrix_panel, reset=True)
         # Update the pacman's active position
         self.pacman = self.pacman_init
-        # Clear the pacman's old position
-        matrix_panel.offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
-        matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
-    elif self.check_in_enemies_ghosts(x, y) != -1 and self.ghosts_active:
+        # Update the enemies active position
+        self.enemies = self.enemies_init.copy()
+    elif (self.check_in_enemies_ghosts(x, y) != -1 or ((x, y) in self.walls and self.check_in_enemies_ghosts(x_old, y_old) != -1)) and self.ghosts_active:
       # put ghost in jail
       ghost_idx = self.check_in_enemies_ghosts(x, y)
 
@@ -426,7 +423,10 @@ class PacmanGame():
       matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.PACMAN_COLOR)
       matrix_panel.offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
       matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
-      self.pacman = (x, y)
+      if (x, y) not in self.walls:
+        self.pacman = (x, y)
+      else:
+        self.pacman = (x_old, y_old)
 
   def update_score(self, x, y):
     # Only check if the movement was into a food or power pellet square
@@ -473,7 +473,7 @@ class PacmanGame():
       # if statements to determine timings for scatter mode, chase mode and then also movement according to those modes
 
       #if ghost in scatter mode then call enemy_scatter
-      if self.scatter_timer[enemy_idx] > 0:
+      if self.scatter_timer[enemy_idx] >= 0:
         self.scatter_timer[enemy_idx] -= 1
 
       if self.scatter_timer[enemy_idx] > 0:
@@ -500,7 +500,7 @@ class PacmanGame():
   def enemy_scatter(self, enemy_idx, old_pos, old_2_pos):
     # the enemy is scattering itself around the board
     #scatter_out_of_bounds_coords = [(-5, -5), (69, 5), (-5, 37), (69, 37)]
-    scatter_coords = [(2, 2), (2, 61), (31, 2), (31, 61)]
+    scatter_coords = [(2, 2), (61, 2), (2, 31), (61, 31)]
     return self.update_enemy_pos(old_pos, old_2_pos, scatter_coords[enemy_idx])
 
   def enemy_chase(self, enemy_idx, old_pos, old_2_pos):
@@ -643,13 +643,17 @@ class PacmanGame():
   
 if __name__ == "__main__":  
   mpu_queue = Queue()
+  volume_queue = Queue()
 
   i2c = board.I2C()  # uses board.SCL and board.SDA
   mpu = adafruit_mpu6050.MPU6050(i2c)
-  mpu_thread = threading.Thread(target=read_pitch_roll, args=(mpu, mpu_queue,))
+  mpu_thread = threading.Thread(target=pacman_sensors.read_pitch_roll, args=(mpu, mpu_queue,))
   mpu_thread.start()
 
-  matrix_panel = MatrixPanel(mpu_queue)
+  volume_thread = threading.Thread(target=pacman_sensors.read_volume, args=(volume_queue,))
+  volume_thread.start()
+
+  matrix_panel = MatrixPanel(mpu_queue, volume_queue)
   matrix_panel_thread = threading.Thread(target=matrix_panel.process, args=())
   matrix_panel_thread.start()
 
