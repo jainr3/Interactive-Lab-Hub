@@ -6,7 +6,7 @@ from queue import Queue
 from rgbmatrix import graphics
 import pacman_sensors # my file
 
-SKIP_HOMESCREEN = True
+SKIP_HOMESCREEN = False
 
 class MatrixPanel(SampleBase):
   def __init__(self, mpu_queue, volume_queue, *args, **kwargs):
@@ -18,10 +18,12 @@ class MatrixPanel(SampleBase):
 
   def run(self):
     self.offset_canvas = self.matrix.CreateFrameCanvas()
+    run_again = False
     while True:
       # First do the home screen stuff
-      if not SKIP_HOMESCREEN:
+      if not SKIP_HOMESCREEN and not run_again:
         self.game.display_home_screen(self, mpu_queue)
+        run_again = True
       # When that is done, show the game board
       self.game.init_board(self)
       while not self.game.game_over:
@@ -35,7 +37,7 @@ class MatrixPanel(SampleBase):
 
       # Game is over; go back to home screen
       self.game = PacmanGame() # reset the game state
-    
+
 
   def get_mpu_pitch_roll(self):
     return self.mpu_queue.get()
@@ -48,7 +50,7 @@ class MatrixPanel(SampleBase):
 class PacmanGame():
   LIVES_COLOR = (255, 0, 0) # RED
   SCORE_COLOR = (255, 255, 0) # YELLOW 
-  WALL_COLOR = (25, 25, 166) # BLUE
+  WALL_COLOR = (0, 0, 255) # BLUE
   FOOD_COLOR = (255, 255, 255) # WHITE
   POWER_PELLETS_COLOR = (0, 255, 0)# GREEN
   PACMAN_COLOR = (255, 255, 0) # YELLOW 
@@ -73,7 +75,7 @@ class PacmanGame():
   GAME_BOARD_LENGTH = 62 # leave 2 pixel cols on right side for score / lives
   GAME_BOARD_HEIGHT = 32
 
-  PACMAN_BOARD = 'pacman_board_2.txt'
+  PACMAN_BOARD = 'pacman_board_3.txt'
 
   # This is calibrated based on how the user is supposed to hold the device
   PITCH_THRESHOLD = -25
