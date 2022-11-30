@@ -59,7 +59,6 @@ class PacmanGame():
   #ENEMY_FUNKY_COLOR = (0, 255, 0) # GREEN
   #ENEMY_SUE_COLOR = (128, 0, 128) # PURPLE
   #ENEMY_CLYDE_COLOR = (255, 184, 82) # ORANGE
-  ENEMY_COLORS = [ENEMY_BLINKY_COLOR, ENEMY_BLINKY_COLOR, ENEMY_BLINKY_COLOR, ENEMY_BLINKY_COLOR]
 
   #GHOST_BLINKY_COLOR = (255, 127, 127) # LIGHT RED
   #GHOST_PINKY_COLOR = (255, 182, 193) # LIGHT PINK
@@ -67,6 +66,8 @@ class PacmanGame():
   #GHOST_FUNKY_COLOR = (144, 238, 144) # LIGHT GREEN
   GHOST_SUE_COLOR = (128, 0, 128) # PURPLE (203, 195, 227) # LIGHT PURPLE
   #GHOST_CLYDE_COLOR = (255, 213, 128) # LIGHT ORANGE
+  
+  ENEMY_COLORS = [ENEMY_BLINKY_COLOR, ENEMY_BLINKY_COLOR, ENEMY_BLINKY_COLOR, ENEMY_BLINKY_COLOR]
   GHOST_COLORS = [GHOST_SUE_COLOR, GHOST_SUE_COLOR, GHOST_SUE_COLOR, GHOST_SUE_COLOR]
 
   GAME_BOARD_LENGTH = 62 # leave 2 pixel cols on right side for score / lives
@@ -469,7 +470,7 @@ class PacmanGame():
     # 1 dot = 2000 points (if 4000 <= score < 40000 points)
     # pattern continues
     x_val = 63
-    dots_allocated_for_score_info = 5
+    dots_allocated_for_score_info = 20
     points_per_dot = 20
     while self.score > points_per_dot*dots_allocated_for_score_info:
       points_per_dot *= 10
@@ -653,13 +654,19 @@ class PacmanGame():
     # TODO: check these starting coordinates
     starting_coords = [[(13, 30), (13, 30)], [(13, 33), (13, 33)], [(21, 29), (21, 29)], [(21, 34), (21, 34)]]
     for (enemy_idx, coords), enemy_color in zip(self.enemies.items(), PacmanGame.ENEMY_COLORS):
-      x_old, y_old = coords[0] # position inside jail
+      x_old, y_old = coords[0] # possible position inside jail
       x, y = starting_coords[enemy_idx][0] # position outside jail
 
-      self.enemies[enemy_idx] = starting_coords[enemy_idx]
-      matrix_panel.offset_canvas.SetPixel(x, y, *enemy_color)
-      matrix_panel.offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
-    
+      if self.check_in_jail(x_old, y_old): # TODO TEST this
+        # if it was in jail, free from jail and set the pixels
+        self.enemies[enemy_idx] = starting_coords[enemy_idx]
+        matrix_panel.offset_canvas.SetPixel(x, y, *enemy_color)
+        matrix_panel.offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
+      else:
+        # dont remove from jail if never in jail
+        # simply turn its color back from ghost to enemy
+        matrix_panel.offset_canvas.SetPixel(x_old, y_old, *enemy_color)
+
     matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
 
   def check_in_jail(self, x, y):
