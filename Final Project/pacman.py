@@ -46,7 +46,8 @@ class MatrixPanel(SampleBase):
 
 
 class PacmanGame():
-  SCORE_COLOR = (128, 0, 128) # PURPLE
+  LIVES_COLOR = (255, 0, 0) # RED
+  SCORE_COLOR = (255, 255, 0) # YELLOW 
   WALL_COLOR = (25, 25, 166) # BLUE
   FOOD_COLOR = (255, 255, 255) # WHITE
   POWER_PELLETS_COLOR = (0, 255, 0)# GREEN
@@ -56,15 +57,15 @@ class PacmanGame():
   #ENEMY_PINKY_COLOR = (255, 184, 255) # PINK
   #ENEMY_INKY_COLOR = (0, 255, 255) # AQUA
   #ENEMY_FUNKY_COLOR = (0, 255, 0) # GREEN
-  ENEMY_SUE_COLOR = (128, 0, 128) # PURPLE
+  #ENEMY_SUE_COLOR = (128, 0, 128) # PURPLE
   #ENEMY_CLYDE_COLOR = (255, 184, 82) # ORANGE
-  ENEMY_COLORS = [ENEMY_SUE_COLOR, ENEMY_SUE_COLOR, ENEMY_SUE_COLOR, ENEMY_SUE_COLOR]
+  ENEMY_COLORS = [ENEMY_BLINKY_COLOR, ENEMY_BLINKY_COLOR, ENEMY_BLINKY_COLOR, ENEMY_BLINKY_COLOR]
 
   #GHOST_BLINKY_COLOR = (255, 127, 127) # LIGHT RED
   #GHOST_PINKY_COLOR = (255, 182, 193) # LIGHT PINK
   #GHOST_INKY_COLOR = (203, 255, 245) # LIGHT AQUA
   #GHOST_FUNKY_COLOR = (144, 238, 144) # LIGHT GREEN
-  GHOST_SUE_COLOR = (203, 195, 227) # LIGHT PURPLE
+  GHOST_SUE_COLOR = (128, 0, 128) # PURPLE (203, 195, 227) # LIGHT PURPLE
   #GHOST_CLYDE_COLOR = (255, 213, 128) # LIGHT ORANGE
   GHOST_COLORS = [GHOST_SUE_COLOR, GHOST_SUE_COLOR, GHOST_SUE_COLOR, GHOST_SUE_COLOR]
 
@@ -309,8 +310,7 @@ class PacmanGame():
     # Change the game speed based on the volume level 0.05 (fast speed = high volume) to 0.3 (slow speed = low volume)
     # fixed vals scheme: > 70 = high, < 25 = low, middle
     # smooth function scheme: roughly > 100 capped at 0.05; < 10 capped at 0.4
-    self.game_speed = max(0, volume_level * (0.05 - 0.1) / (100 - 10) + 0.1)
-    print(self.game_speed, volume_level)
+    self.game_speed = max(0, volume_level * (0.01 - 0.04) / (100 - 10) + 0.06)
 
     # within a level, change the scatter timer for the enemies based on what phase we are in
     # phase time = (max(0, X - 4*(self.level-1)))
@@ -340,7 +340,7 @@ class PacmanGame():
     else:
       self.move_enemies(matrix_panel)
       #self.switch_direction = False
-
+    
     # Finally check if the "level" has been cleared
     if len(self.food) == 0 and len(self.power_pellets) == 0:
       self.level += 1
@@ -353,6 +353,7 @@ class PacmanGame():
     if not reset:
       for x, y in self.walls.keys():
         matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.WALL_COLOR)
+      self.update_lives_display(matrix_panel, init=True)
     for x, y in self.food.keys():
       matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.FOOD_COLOR)
     for x, y in self.power_pellets.keys():
@@ -397,8 +398,9 @@ class PacmanGame():
 
       self.pacman = (x, y)
       # Only have to update the score if there was movement
-      self.update_score(x, y)
+      self.update_score(matrix_panel, x, y)
     elif (self.check_in_enemies_ghosts(x, y) != -1 or ((x, y) in self.walls and self.check_in_enemies_ghosts(x_old, y_old) != -1)) and not self.ghosts_active:
+      self.update_lives_display(matrix_panel)
       self.lives -= 1
       if self.lives == 0:
         # Game over
@@ -428,21 +430,57 @@ class PacmanGame():
       else:
         self.pacman = (x_old, y_old)
 
-  def update_score(self, x, y):
+  def update_score(self, matrix_panel, x, y):
     # Only check if the movement was into a food or power pellet square
     # Also remove (x, y) from the food or power pellets dict
     if (x, y) in self.food:
       self.score += 10
       self.food.pop((x, y))
+      self.update_score_display(matrix_panel)
     elif (x, y) in self.power_pellets:
       self.score += 50
       self.power_pellets.pop((x, y))
       self.ghosts_active = True
       self.switch_direction = True
       self.ghosts_timesteps_left = max(0, 20 - 4*(self.level-1)) # lvl 1 = 20, 2 = 16, 3 = 12, 4 = 8, 5 = 4, 6+ = 0
+      self.update_score_display(matrix_panel)
     # Ghost could be on a square with food / power pellet in which case pacman would get points for both
     if self.check_in_enemies_ghosts(x, y) != -1 and self.ghosts_active:
       self.score += 200
+      self.update_score_display(matrix_panel, ate_ghost=True)
+
+  def update_lives_display(self, matrix_panel, init=False):
+    # display lives
+    x_val = 63
+    if init:
+      for y_val in range(self.lives):
+        matrix_panel.offset_canvas.SetPixel(x_val, y_val, *PacmanGame.LIVES_COLOR)
+    else:
+      y_val = self.lives - 1
+      if self.lives != 0:
+        # turn off the pixel for the life that was lost
+        matrix_panel.offset_canvas.SetPixel(x_val, y_val, 0, 0, 0)
+    matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
+
+  def update_score_display(self, matrix_panel, ate_ghost=False):
+    # 1 color, 20 dots of space to work with
+    # 1 dot = 20 points (if score < 400 points)
+    # 1 dot = 200 points (if 400 <= score < 4000 points)
+    # 1 dot = 2000 points (if 4000 <= score < 40000 points)
+    # pattern continues
+    x_val = 63
+    dots_allocated_for_score_info = 5
+    points_per_dot = 20
+    while self.score > points_per_dot*dots_allocated_for_score_info:
+      points_per_dot *= 10
+    for i in range(dots_allocated_for_score_info):
+      y_val = 31 - i
+      matrix_panel.offset_canvas.SetPixel(x_val, y_val, 0, 0, 0)
+    for i in range(self.score // points_per_dot):
+      y_val = 31 - i
+      matrix_panel.offset_canvas.SetPixel(x_val, y_val, *PacmanGame.SCORE_COLOR)
+
+    matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
 
   def display_final_score(self, matrix_panel):
     # Just use draw text to display final score and level
@@ -621,7 +659,8 @@ class PacmanGame():
       self.enemies[enemy_idx] = starting_coords[enemy_idx]
       matrix_panel.offset_canvas.SetPixel(x, y, *enemy_color)
       matrix_panel.offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
-      matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
+    
+    matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
 
   def check_in_jail(self, x, y):
     return (x, y) in self.jail.keys()

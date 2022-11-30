@@ -15,7 +15,7 @@ import queue
 DEVICE_INDEX = 2
 
 ## Compute the audio statistics every `UPDATE_INTERVAL` seconds.
-UPDATE_INTERVAL = 1.0
+UPDATE_INTERVAL = 0 #1.0
 
 ### Things you probably don't need to change
 FORMAT=np.float32
@@ -33,11 +33,8 @@ def read_pitch_roll(mpu, mpu_queue):
     accYnorm = y_accel / math.sqrt((x_accel * x_accel) + (y_accel * y_accel) + (z_accel * z_accel))
 
     pitch = math.asin(accXnorm)
-    # TODO Prevent math.cos(90)=0
-    # TODO Prevent math.asin(-pi/2)
-    # e.g pitch= -1.5496053923303592 accYnorm=-0.021189348515151543 caused error
     roll = -math.asin(accYnorm / math.cos(pitch))
-
+      
     pitch = (pitch * 360) / (2*math.pi)
     roll = (roll * 360) / (2*math.pi)
 
@@ -58,16 +55,12 @@ def read_volume(volume_queue):
     audioQueue.put(in_data)
     return None, pyaudio.paContinue
 
-  stream = pyaudio_instance.open(input=True,start=False,format=pyaudio.paFloat32,channels=CHANNELS,rate=SAMPLING_RATE,frames_per_buffer=int(SAMPLING_RATE/2),stream_callback=_callback,input_device_index=DEVICE_INDEX)
-  
+  stream = pyaudio_instance.open(input=True,start=False,format=pyaudio.paFloat32,channels=CHANNELS,rate=SAMPLING_RATE,frames_per_buffer=int(SAMPLING_RATE/32),stream_callback=_callback,input_device_index=DEVICE_INDEX)
   
   # One essential way to keep track of variables overtime is with a ringbuffer. 
   # As an example the `AudioBuffer` it stores always the last second of audio data. 
-  AudioBuffer = RingBuffer(capacity=SAMPLING_RATE*1, dtype=FORMAT) # 1 second long buffer.
-  
-  # Another example is the `VolumeHistory` ringbuffer. 
-  VolumeHistory = RingBuffer(capacity=int(20/UPDATE_INTERVAL), dtype=FORMAT) ## This is how you can compute a history to record changes over time
-  ### Here  is a good spot to extend other buffers  aswell that keeps track of varailbes over a certain period of time. 
+  buffer_time_size = 1 # seconds long buffer.
+  AudioBuffer = RingBuffer(capacity=SAMPLING_RATE*buffer_time_size, dtype=FORMAT) 
 
   nextTimeStamp = time.time()
   stream.start_stream()
@@ -85,45 +78,8 @@ def read_volume(volume_queue):
 
       buffer  = np.array(AudioBuffer) #Get the last second of audio. 
 
-
       volume = np.rint(np.sqrt(np.mean(buffer**2))*10000) # Compute the rms volume
-      
-      
-      VolumeHistory.append(volume)
-      volumeSlow = volume
-      volumechange = 0.0
-      if VolumeHistory.is_full:
-        HalfLength = int(np.round(VolumeHistory.maxlen/2)) 
-        vnew = np.array(VolumeHistory)[HalfLength:].mean()
-        vold = np.array(VolumeHistory)[:VolumeHistory.maxlen-HalfLength].mean()
-        volumechange =vnew-vold
-        volumeSlow = np.array(VolumeHistory).mean()
-      
-      ## Computes the Frequency Foruier analysis on the Audio Signal.
-      N = buffer.shape[0] 
-      window = hann(N) 
-      amplitudes = np.abs(rfft(buffer*window))[25:] #Contains the volume for the different frequency bin.
-      frequencies = (rfftfreq(N, 1/SAMPLING_RATE)[:N//2])[25:] #Contains the Hz frequency values. for the different frequency bin.
-      '''
-      Combining  the `amplitudes` and `frequencies` varialbes allows you to understand how loud a certain frequency is.
 
-      e.g. If you'd like to know the volume for 500Hz you could do the following. 
-      1. Find the frequency bin in which 500Hz belis closest to with:
-      FrequencyBin = np.abs(frequencies - 500).argmin()
-      
-      2. Look up the volume in that bin:
-      amplitudes[FrequencyBin]
-
-
-      The example below does something similar, just in revers.
-      It finds the loudest amplitued and its coresponding bin  with `argmax()`. 
-      The uses the index to look up the Freqeucny value.
-      '''
-
-      LoudestFrequency = frequencies[amplitudes.argmax()]
-      
-      #print("Loudest Frequency:",LoudestFrequency)
-      #print("RMS volume:",volumeSlow)
       #print("Volume", volume)
       with volume_queue.mutex: 
         volume_queue.queue.clear()
