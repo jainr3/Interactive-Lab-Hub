@@ -80,3 +80,57 @@ One of the biggest risks for our idea is that the parts ordered turn out to be d
 
 One fall-back plan to mitigate the risk that the parts are defective is that we use any display we have and connect it with a HDMI cable to the raspberry pi. Another idea could be to use the gyroscope in an old mobile phone or a separate handheld controller (separate RPi) and stream the data to the display. To mitigate the risk of the unknowns in our project, we will focus on the core implementation first, which includes developing the main interaction components, before moving on to more complex things like creating better graphics / complex game logic.
 
+## Functional Checkoff 
+
+The video for the functional checkoff is below. The video shows the matrix gaming console with Pacman implemented on it. The main interaction components that are shown include tilting the board to move pacman around as well as the volume level detection which impacts the speed of the game. Additionally, we have included some more sketches and photographs from the work we have done so far in the subsequent sections.
+
+[![Final Project Functional Checkoff](https://img.youtube.com/vi/FJsH19XHq3g/0.jpg)](https://www.youtube.com/watch?v=FJsH19XHq3g)
+
+### Revised concept design for Pacman
+
+The storyboard for Pacman is below. From the project plan we modified the idea to include the following components:
+* Gyroscope: Side to side tilt to move the player left to right
+* Microphone: Loud volume = faster game speed, Quieter volume = slower game speed; a faster game speed makes it harder to execute precise maneuvers around the walls
+* Speaker (in progress): Special game states like pacman death, eating a ghost, game over have audio feedback to tell the user that they have occurred
+
+<img src="imgs/storyboard_pacman.png" alt="Storyboard Pacman"/>
+
+### Physical Hardware Development
+
+Below are some images from connecting the physical components, wiring, soldering, and casing design.
+
+<img src="imgs/hardware_wiring2.png" alt="Hardware" width=400/>
+
+<img src="imgs/hardware_wiring.png" alt="Hardware" width=400/>
+
+<img src="imgs/hardware_soldering_bonnet.png" alt="Hardware" width=400/>
+
+Cardboard / Acryllic case design [file](./imgs/final_box_design.ai):
+
+<img src="imgs/hardware_cardboard_casing.png" alt="Hardware" width=400/>
+
+<img src="imgs/hardware_casing.png" alt="Hardware" width=400/>
+
+### Software Development
+
+Below are some images from inital testing of the matrix panel.
+
+Creating and displaying an intuitive homescreen:
+
+<img src="imgs/software_homescreen.png" alt="Software" width=400/>
+
+Parsing a simple maze file and displaying it. Maze Files [1](pacman_board_1.txt), [2](pacman_board_2.txt), [3](pacman_board_3.txt).
+
+<img src="imgs/software_dev_testing_maze_display.png" alt="Software" width=400/>
+
+Taping a gyroscope to a box to test its functionality individually:
+
+<img src="imgs/software_testing_gyroscope.png" alt="Software" width=400/>
+
+Here is a behind-the-scenes video for some testing of the gyroscope readings and the progression towards moving the Pacman around the board.
+
+[![Final Project Gyro Behind the Scenes](https://img.youtube.com/vi/jXzmlWeQkb0/0.jpg)](https://www.youtube.com/watch?v=jXzmlWeQkb0)
+
+The main code for the project is located in [pacman.py](pacman.py) which has dependencies in [pacman_sensors.py](pacman_sensors.py), [sample_base.py](samplebase.py) and a few other library files.
+
+The initial testing files and other debugging files that we used are: [gyroscope_test.py](gyroscope_test.py), [led_panel_test.py](led_panel_test.py), [runtext.py](runtext.py), and [integration_test.py](integration_test.py).
