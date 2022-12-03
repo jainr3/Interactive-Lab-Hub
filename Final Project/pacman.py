@@ -6,7 +6,7 @@ from queue import Queue
 from rgbmatrix import graphics
 import pacman_sensors # my file
 
-SKIP_HOMESCREEN = False
+SKIP_HOMESCREEN = True
 
 class MatrixPanel(SampleBase):
   def __init__(self, mpu_queue, volume_queue, *args, **kwargs):
@@ -18,12 +18,10 @@ class MatrixPanel(SampleBase):
 
   def run(self):
     self.offset_canvas = self.matrix.CreateFrameCanvas()
-    run_again = False
     while True:
       # First do the home screen stuff
-      if not SKIP_HOMESCREEN and not run_again:
+      if not SKIP_HOMESCREEN:
         self.game.display_home_screen(self, mpu_queue)
-        run_again = True
       # When that is done, show the game board
       self.game.init_board(self)
       while not self.game.game_over:
@@ -75,20 +73,22 @@ class PacmanGame():
   GAME_BOARD_LENGTH = 62 # leave 2 pixel cols on right side for score / lives
   GAME_BOARD_HEIGHT = 32
 
-  PACMAN_BOARD = 'pacman_board_3.txt'
+  PACMAN_BOARD = 'pacman_board_4.txt'
 
   # This is calibrated based on how the user is supposed to hold the device
-  PITCH_THRESHOLD = -25
+  PITCH_THRESHOLD = -18
   ROLL_THRESHOLD = 7
 
   def __init__(self):
-    self.walls, self.food, self.power_pellets, self.jail, self.pacman_init, self.enemies_init = self.read_board_in(PacmanGame.PACMAN_BOARD)
+    self.walls, self.food_init, self.power_pellets_init, self.jail, self.pacman_init, self.enemies_init = self.read_board_in(PacmanGame.PACMAN_BOARD)
+    self.food, self.power_pellets = self.food_init.copy(), self.power_pellets_init.copy()
     self.pacman, self.enemies = self.pacman_init, self.enemies_init.copy()
     self.score = 0
     self.lives = 3
     self.level = 1 # the game level the player is on, each time they "beat" the game, this increases...
     self.level_phase = 0 # the game level phase the player is in; progresses from 1 to 4 so the longer they wait the harder it becomes
     self.game_speed = 0.05 # seconds; this is influenced by the volume level
+    self.enemies_ghosts_moving = True # if True then enemies/ghosts allowed to move
     self.ghosts_active = False # the position of ghosts and enemies is tracked by the same self.enemies
     self.ghosts_timesteps_left = -1 # Ghosts timesteps left, only used if ghosts are active
     self.switch_direction = False # whether there is a transition between ghost / enemy mode currently
@@ -251,6 +251,9 @@ class PacmanGame():
       time.sleep(self.game_speed)
     
     # Home screen is done, show the 3 ... 2 ... 1 ... GO countdown
+    self.show_countdown(matrix_panel)
+
+  def show_countdown(self, matrix_panel):
     matrix_panel.offset_canvas.Clear()
     font = graphics.Font()
     font.LoadFont("fonts/7x13.bdf")
@@ -329,53 +332,63 @@ class PacmanGame():
       self.scatter_timer = {i: -1 if i < self.level_phase-1 else phase_time for i in self.enemies.keys()}
    
     # First update the Pacman position based on the pitch / roll
-    self.move_pacman(matrix_panel, pitch, roll)
+    death = self.move_pacman(matrix_panel, pitch, roll)
 
-    # Then have the Enemy/Ghost AI update their positions
-    if self.ghosts_active:
-      self.move_ghosts(matrix_panel)
-      self.switch_direction = False
-      self.ghosts_timesteps_left -= 1
-      if self.ghosts_timesteps_left == 0:
-        self.ghosts_active = False
-        #self.switch_direction = True
-        self.free_ghosts_from_jail(matrix_panel)
-    else:
-      self.move_enemies(matrix_panel)
-      #self.switch_direction = False
-    
-    # Finally check if the "level" has been cleared
-    if len(self.food) == 0 and len(self.power_pellets) == 0:
-      self.level += 1
-      self.init_board(matrix_panel)
+    if not death:
+      # Then have the Enemy/Ghost AI update their positions
+      if self.enemies_ghosts_moving:
+        if self.ghosts_active:
+          self.move_ghosts(matrix_panel)
+          self.switch_direction = False
+          self.ghosts_timesteps_left -= 1
+          if self.ghosts_timesteps_left == 0:
+            self.ghosts_active = False
+            #self.switch_direction = True
+            self.free_ghosts_from_jail(matrix_panel)
+        else:  
+          self.move_enemies(matrix_panel)
+          #self.switch_direction = False
+      self.enemies_ghosts_moving = not self.enemies_ghosts_moving
+
+      # Finally check if the "level" has been cleared
+      if len(self.food) == 0 and len(self.power_pellets) == 0:
+        print("Level Cleared!")
+        self.level += 1
+        self.food = self.food_init.copy()
+        self.power_pellets = self.power_pellets_init.copy()
+        self.init_board(matrix_panel)
+        # Update the pacman's active position
+        self.pacman = self.pacman_init
+        # Update the enemies active position
+        self.enemies = self.enemies_init.copy()
+        # TODO: some intermediate screen that says you cleared the level
+        # TODO: need to repopulate the food, pellets, enemy postions, pacman position, ghosts active, 
+        # and any other variables that got initialized the first time the game was started
 
 
-  def init_board(self, matrix_panel, reset=False):
+  def init_board(self, matrix_panel):
+    matrix_panel.offset_canvas.Clear()
     # Called when the matrix panel is first booting up the game OR after a death OR if you clear a level
-    # reset flag is only True for after a death
-    if not reset:
-      for x, y in self.walls.keys():
-        matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.WALL_COLOR)
-      self.update_lives_display(matrix_panel, init=True)
-    for x, y in self.food.keys():
-      matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.FOOD_COLOR)
-    for x, y in self.power_pellets.keys():
-      matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.POWER_PELLETS_COLOR)
+    for x, y in self.walls.keys():
+      matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.WALL_COLOR)
+        
+    self.update_lives_display(matrix_panel)
+    self.update_score_display(matrix_panel)
 
-    if reset:
-      # Clear the pacman's old position
-      x_old, y_old = self.pacman
-      matrix_panel.offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
-      # Clear the enemies old position
-      for (enemy_idx, coords), enemy_color in zip(self.enemies.items(), PacmanGame.ENEMY_COLORS):
-        x, y = coords[0]
-        if (x, y) in self.food:
-          matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.FOOD_COLOR)
-        elif (x, y) in self.power_pellets:
-          matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.POWER_PELLETS_COLOR)
-        elif (x, y) != self.pacman_init: # only reset if not in pacman's start
-          matrix_panel.offset_canvas.SetPixel(x, y, 0, 0, 0)
-    
+    # Clear the pacman's old position
+    x_old, y_old = self.pacman
+    matrix_panel.offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
+    # Clear the enemies old position
+    for (enemy_idx, coords), enemy_color in zip(self.enemies.items(), PacmanGame.ENEMY_COLORS):
+      x, y = coords[0]
+      if (x, y) in self.food:
+        matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.FOOD_COLOR)
+      elif (x, y) in self.power_pellets:
+        matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.POWER_PELLETS_COLOR)
+      else: # only reset if not in pacman's start
+        matrix_panel.offset_canvas.SetPixel(x, y, 0, 0, 0)
+    matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
+
     # Set the pacman's current position
     matrix_panel.offset_canvas.SetPixel(*self.pacman_init, *PacmanGame.PACMAN_COLOR)
     
@@ -384,6 +397,11 @@ class PacmanGame():
       x, y = coords[0]
       matrix_panel.offset_canvas.SetPixel(x, y, *enemy_color)
     matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
+
+    for x, y in self.food.keys():
+      matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.FOOD_COLOR)
+    for x, y in self.power_pellets.keys():
+      matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.POWER_PELLETS_COLOR)
 
   def move_pacman(self, matrix_panel, pitch, roll):
     x_old, y_old = self.pacman
@@ -403,20 +421,25 @@ class PacmanGame():
       # Only have to update the score if there was movement
       self.update_score(matrix_panel, x, y)
     elif (self.check_in_enemies_ghosts(x, y) != -1 or ((x, y) in self.walls and self.check_in_enemies_ghosts(x_old, y_old) != -1)) and not self.ghosts_active:
-      self.update_lives_display(matrix_panel)
+      print("Pacman moved into a square where an enemy was located!")
       self.lives -= 1
       if self.lives == 0:
         # Game over
         self.display_final_score(matrix_panel)
         self.game_over = True
       else:
+        # Show the 3 2 1 screen
+        self.show_countdown(matrix_panel)
         # Reset the board
-        self.init_board(matrix_panel, reset=True)
+        self.init_board(matrix_panel)
         # Update the pacman's active position
         self.pacman = self.pacman_init
         # Update the enemies active position
         self.enemies = self.enemies_init.copy()
+      # death is true, don't move the enemies or run any code in the rest of the loop
+      return True
     elif (self.check_in_enemies_ghosts(x, y) != -1 or ((x, y) in self.walls and self.check_in_enemies_ghosts(x_old, y_old) != -1)) and self.ghosts_active:
+      print("Pacman moved into a position where the ghost was!")
       # put ghost in jail
       ghost_idx = self.check_in_enemies_ghosts(x, y)
 
@@ -424,14 +447,17 @@ class PacmanGame():
 
       self.enemies[ghost_idx] = [(ghost_x, ghost_y), (ghost_x, ghost_y)]
 
-      # allowed to update the pacman's active position
-      matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.PACMAN_COLOR)
-      matrix_panel.offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
-      matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
       if (x, y) not in self.walls:
+        # allowed to update the pacman's active position
+        matrix_panel.offset_canvas.SetPixel(x, y, *PacmanGame.PACMAN_COLOR)
+        matrix_panel.offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
+        matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
         self.pacman = (x, y)
       else:
+        matrix_panel.offset_canvas.SetPixel(x_old, y_old, *PacmanGame.PACMAN_COLOR)
+        matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
         self.pacman = (x_old, y_old)
+    return False
 
   def update_score(self, matrix_panel, x, y):
     # Only check if the movement was into a food or power pellet square
@@ -445,24 +471,18 @@ class PacmanGame():
       self.power_pellets.pop((x, y))
       self.ghosts_active = True
       self.switch_direction = True
-      self.ghosts_timesteps_left = max(0, 20 - 4*(self.level-1)) # lvl 1 = 20, 2 = 16, 3 = 12, 4 = 8, 5 = 4, 6+ = 0
+      self.ghosts_timesteps_left = max(0, 100 - 15*(self.level-1)) # similar to lvl 1 = 20, 2 = 16, 3 = 12, 4 = 8, 5 = 4, 6+ = 0
       self.update_score_display(matrix_panel)
     # Ghost could be on a square with food / power pellet in which case pacman would get points for both
     if self.check_in_enemies_ghosts(x, y) != -1 and self.ghosts_active:
       self.score += 200
       self.update_score_display(matrix_panel, ate_ghost=True)
 
-  def update_lives_display(self, matrix_panel, init=False):
+  def update_lives_display(self, matrix_panel):
     # display lives
     x_val = 63
-    if init:
-      for y_val in range(self.lives):
-        matrix_panel.offset_canvas.SetPixel(x_val, y_val, *PacmanGame.LIVES_COLOR)
-    else:
-      y_val = self.lives - 1
-      if self.lives != 0:
-        # turn off the pixel for the life that was lost
-        matrix_panel.offset_canvas.SetPixel(x_val, y_val, 0, 0, 0)
+    for y_val in range(self.lives):
+      matrix_panel.offset_canvas.SetPixel(x_val, y_val, *PacmanGame.LIVES_COLOR)
     matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
 
   def update_score_display(self, matrix_panel, ate_ghost=False):
@@ -525,10 +545,7 @@ class PacmanGame():
       # after a movement has been decided, update self.enemies
       self.enemies[enemy_idx] = [(x, y), (x_old, y_old)]
 
-      # TODO: Check whether this new position is the position of the pacman
-      # need to check this here in case pacman is NOT moving and enemy caught up with pacman
-
-      # set the color of the old square to what it was before the ghost was there
+      # set the color of the old square to what it was before the enemy was there
       matrix_panel.offset_canvas.SetPixel(x, y, *enemy_color)
       if (x_old, y_old) in self.food:
         matrix_panel.offset_canvas.SetPixel(x_old, y_old, *PacmanGame.FOOD_COLOR)
@@ -537,6 +554,26 @@ class PacmanGame():
       else:
         matrix_panel.offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
       matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
+
+    for (enemy_idx, coords), enemy_color in zip(self.enemies.items(), PacmanGame.ENEMY_COLORS):
+      # Check whether this new position is the position of the pacman
+      # need to check this here in case pacman is NOT moving and enemy caught up with pacman
+      if self.check_in_enemies_ghosts(*self.pacman) != -1 and not self.ghosts_active:
+        print("Enemy moved into a position where the pacman was!")
+        self.lives -= 1
+        if self.lives == 0:
+          # Game over
+          self.display_final_score(matrix_panel)
+          self.game_over = True
+        else:
+          # Show the 3 2 1 screen
+          self.show_countdown(matrix_panel)
+          # Reset the board
+          self.init_board(matrix_panel)
+          # Update the pacman's active position
+          self.pacman = self.pacman_init
+          # Update the enemies active position
+          self.enemies = self.enemies_init.copy()
 
   def enemy_scatter(self, enemy_idx, old_pos, old_2_pos):
     # the enemy is scattering itself around the board
@@ -620,8 +657,9 @@ class PacmanGame():
       x_old, y_old = coords[0] # will be 1 timestep back if a change is made here
       x_old_2, y_old_2 = coords[1] # will be 2 timesteps back if a change is made here
       
-      # first if they are in jail, do nothing
+      # first if they are in jail, do nothing except color its pixel in
       if self.check_in_jail(x_old, y_old):
+        matrix_panel.offset_canvas.SetPixel(x_old, y_old, *ghost_color)
         continue
 
       # if switch direction, just go back to the last tile that you were at
@@ -632,34 +670,44 @@ class PacmanGame():
         # in that list, if length of list > 1, remove the option to return to the square from which they came
         # if there are still multiple options, then randomly select one and move else just move to the option that is left
         possible_coords = self.get_possible_coordinates(x_old, y_old)
-        if len(possible_coords) > 1 and (x_old, y_old) in possible_coords: # always want "forward" movement
-          possible_coords.remove((x_old, y_old))
+        if len(possible_coords) > 1 and (x_old_2, y_old_2) in possible_coords: # always want "forward" movement
+          possible_coords.remove((x_old_2, y_old_2))
         if len(possible_coords) == 0:
           print("WARNING: No possible coordinates for the ghost to move.")
-          x, y = x_old, y_old
+          x, y = x_old_2, y_old_2
         else:
           x, y = random.choice(possible_coords)
 
       # after a movement has been decided update self.enemies and 
       # set the color of the old square to what it was before the ghost was there
       self.enemies[ghost_idx] = [(x, y), (x_old, y_old)]
-      matrix_panel.offset_canvas.SetPixel(x, y, *ghost_color)
+      if (x, y) != self.pacman:
+        matrix_panel.offset_canvas.SetPixel(x, y, *ghost_color)
       if (x_old, y_old) in self.food:
         matrix_panel.offset_canvas.SetPixel(x_old, y_old, *PacmanGame.FOOD_COLOR)
       elif (x_old, y_old) in self.power_pellets:
         matrix_panel.offset_canvas.SetPixel(x_old, y_old, *PacmanGame.POWER_PELLETS_COLOR)
-      else:
+      elif (x_old, y_old) != self.pacman:
         matrix_panel.offset_canvas.SetPixel(x_old, y_old, 0, 0, 0)
       matrix_panel.matrix.SwapOnVSync(matrix_panel.offset_canvas)
+    
+    for (ghost_idx, coords), ghost_color in zip(self.enemies.items(), PacmanGame.GHOST_COLORS):
+      if self.check_in_enemies_ghosts(*self.pacman) != -1 and self.ghosts_active:
+        print("Ghost moved into a position where the pacman was!")
+        # put ghost in jail
+        ghost_idx = self.check_in_enemies_ghosts(*self.pacman)
+
+        ghost_x, ghost_y = random.choice(list(self.jail.keys()))
+
+        self.enemies[ghost_idx] = [(ghost_x, ghost_y), (ghost_x, ghost_y)]
 
   def free_ghosts_from_jail(self, matrix_panel):
-    # TODO: check these starting coordinates
-    starting_coords = [[(13, 30), (13, 30)], [(13, 33), (13, 33)], [(21, 29), (21, 29)], [(21, 34), (21, 34)]]
+    starting_coords = [[(30, 13), (30, 13)], [(33, 13), (33, 13)], [(29, 21), (29, 21)], [(34, 21), (34, 21)]]
     for (enemy_idx, coords), enemy_color in zip(self.enemies.items(), PacmanGame.ENEMY_COLORS):
       x_old, y_old = coords[0] # possible position inside jail
       x, y = starting_coords[enemy_idx][0] # position outside jail
 
-      if self.check_in_jail(x_old, y_old): # TODO TEST this
+      if self.check_in_jail(x_old, y_old):
         # if it was in jail, free from jail and set the pixels
         self.enemies[enemy_idx] = starting_coords[enemy_idx]
         matrix_panel.offset_canvas.SetPixel(x, y, *enemy_color)

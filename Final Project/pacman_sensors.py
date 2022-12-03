@@ -23,6 +23,7 @@ SAMPLING_RATE = 44100
 CHANNELS=1
 
 def read_pitch_roll(mpu, mpu_queue):
+  old_pitch, old_roll = -18, 7 # doesn't really matter
   while True:
     x_accel, y_accel, z_accel = mpu.acceleration
     x_gyro, y_gyro, z_gyro = mpu.gyro
@@ -32,11 +33,18 @@ def read_pitch_roll(mpu, mpu_queue):
     accXnorm = x_accel / math.sqrt((x_accel * x_accel) + (y_accel * y_accel) + (z_accel * z_accel))
     accYnorm = y_accel / math.sqrt((x_accel * x_accel) + (y_accel * y_accel) + (z_accel * z_accel))
 
-    pitch = math.asin(accXnorm)
-    roll = -math.asin(accYnorm / math.cos(pitch))
+    try:
+      pitch = math.asin(accXnorm)
+      roll = -math.asin(accYnorm / math.cos(pitch))      
       
-    pitch = (pitch * 360) / (2*math.pi)
-    roll = (roll * 360) / (2*math.pi)
+      pitch = (pitch * 360) / (2*math.pi)
+      roll = (roll * 360) / (2*math.pi)
+      old_pitch = pitch
+      old_roll = roll
+    except:
+      pitch = old_pitch
+      roll = old_roll
+      print("WARNING: MATH DOMAIN ERROR")
 
     #print("Pitch {%.2f} Roll {%.2f}" % (pitch, roll))
     # empty out the queue before adding stuff to it, so that when 
