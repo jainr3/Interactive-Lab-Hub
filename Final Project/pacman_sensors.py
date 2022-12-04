@@ -9,7 +9,7 @@ import numpy as np
 from scipy.fft import rfft, rfftfreq
 from scipy.signal.windows import hann
 from numpy_ringbuffer import RingBuffer
-import queue
+import queue, subprocess
 
 ## Please change the following number so that it matches to the microphone that you are using. 
 DEVICE_INDEX = 2
@@ -21,6 +21,11 @@ UPDATE_INTERVAL = 0 #1.0
 FORMAT=np.float32
 SAMPLING_RATE = 44100
 CHANNELS=1
+
+# Defined sounds
+PACMAN_BEGINNING = "sounds/pacman_beginning.wav"
+PACMAN_DEATH = "sounds/pacman_death.wav"
+PACMAN_EATGHOST = "sounds/pacman_eatghost.wav"
 
 def read_pitch_roll(mpu, mpu_queue):
   old_pitch, old_roll = -18, 7 # doesn't really matter
@@ -94,3 +99,12 @@ def read_volume(volume_queue):
       volume_queue.put(volume)
       
       nextTimeStamp = UPDATE_INTERVAL+time.time() # See `UPDATE_INTERVAL` above
+
+def output_sound(speaker_queue):
+  while True:
+    print("START")
+    action = speaker_queue.get()
+    print(action)
+    #subprocess.call(["aplay", action])
+    subprocess.call(["aplay", "sounds/pacman_beginning.wav"])
+    time.sleep(1)

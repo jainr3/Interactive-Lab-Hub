@@ -9,10 +9,11 @@ import pacman_sensors # my file
 SKIP_HOMESCREEN = True
 
 class MatrixPanel(SampleBase):
-  def __init__(self, mpu_queue, volume_queue, *args, **kwargs):
+  def __init__(self, mpu_queue, volume_queue, speaker_queue, *args, **kwargs):
     super(MatrixPanel, self).__init__(*args, **kwargs)
     self.mpu_queue = mpu_queue
     self.volume_queue = volume_queue
+    self.speaker_queue = speaker_queue
     self.game = PacmanGame() # configure this if we want multiple games
     self.offset_canvas = None # init elsewhere
 
@@ -73,7 +74,7 @@ class PacmanGame():
   GAME_BOARD_LENGTH = 62 # leave 2 pixel cols on right side for score / lives
   GAME_BOARD_HEIGHT = 32
 
-  PACMAN_BOARD = 'pacman_board_4.txt'
+  PACMAN_BOARD = 'pacman_board_5.txt'
 
   # This is calibrated based on how the user is supposed to hold the device
   PITCH_THRESHOLD = -18
@@ -251,13 +252,24 @@ class PacmanGame():
       time.sleep(self.game_speed)
     
     # Home screen is done, show the 3 ... 2 ... 1 ... GO countdown
-    self.show_countdown(matrix_panel)
+    self.show_countdown(matrix_panel, level=True)
 
-  def show_countdown(self, matrix_panel):
+  def show_countdown(self, matrix_panel, level=False):
     matrix_panel.offset_canvas.Clear()
     font = graphics.Font()
     font.LoadFont("fonts/7x13.bdf")
     textColor = graphics.Color(255, 255, 255)
+
+    # if transitioning levels, also show the level number
+    if level:
+      my_text = f"Level {self.level}"
+      len = graphics.DrawText(matrix_panel.offset_canvas, font, 6, 18, textColor, my_text)
+      time.sleep(1.0)
+      matrix_panel.offset_canvas.Clear()
+
+      # Also play sound
+      matrix_panel.speaker_queue.put(pacman_sensors.PACMAN_BEGINNING)
+
     my_text = "3"
     len = graphics.DrawText(matrix_panel.offset_canvas, font, 29, 18, textColor, my_text)
     time.sleep(1.0)
@@ -354,6 +366,9 @@ class PacmanGame():
       if len(self.food) == 0 and len(self.power_pellets) == 0:
         print("Level Cleared!")
         self.level += 1
+        # Some intermediate screen that says you cleared the level
+        self.show_countdown(matrix_panel, level=True)
+
         self.food = self.food_init.copy()
         self.power_pellets = self.power_pellets_init.copy()
         self.init_board(matrix_panel)
@@ -361,9 +376,19 @@ class PacmanGame():
         self.pacman = self.pacman_init
         # Update the enemies active position
         self.enemies = self.enemies_init.copy()
-        # TODO: some intermediate screen that says you cleared the level
-        # TODO: need to repopulate the food, pellets, enemy postions, pacman position, ghosts active, 
+        # Need to repopulate the food, pellets, enemy postions, pacman position, ghosts active, 
         # and any other variables that got initialized the first time the game was started
+        # Give them back their lives if they lost any, every even numbered level
+        if self.level % 2 == 0:
+          self.lives = 3
+        # Reset the level phase
+        self.level_phase = 0
+        # Set this back
+        self.enemies_ghosts_moving = True
+        self.ghosts_active = False
+        self.ghosts_timesteps_left = -1
+        self.switch_direction = False
+        self.scatter_timer = {i: -1 for i in self.enemies.keys()}
 
 
   def init_board(self, matrix_panel):
@@ -423,6 +448,7 @@ class PacmanGame():
     elif (self.check_in_enemies_ghosts(x, y) != -1 or ((x, y) in self.walls and self.check_in_enemies_ghosts(x_old, y_old) != -1)) and not self.ghosts_active:
       print("Pacman moved into a square where an enemy was located!")
       self.lives -= 1
+      matrix_panel.speaker_queue.put(pacman_sensors.PACMAN_DEATH)
       if self.lives == 0:
         # Game over
         self.display_final_score(matrix_panel)
@@ -441,6 +467,8 @@ class PacmanGame():
     elif (self.check_in_enemies_ghosts(x, y) != -1 or ((x, y) in self.walls and self.check_in_enemies_ghosts(x_old, y_old) != -1)) and self.ghosts_active:
       print("Pacman moved into a position where the ghost was!")
       # put ghost in jail
+      matrix_panel.speaker_queue.put(pacman_sensors.PACMAN_EATGHOST)
+
       ghost_idx = self.check_in_enemies_ghosts(x, y)
 
       ghost_x, ghost_y = random.choice(list(self.jail.keys()))
@@ -561,6 +589,7 @@ class PacmanGame():
       if self.check_in_enemies_ghosts(*self.pacman) != -1 and not self.ghosts_active:
         print("Enemy moved into a position where the pacman was!")
         self.lives -= 1
+        matrix_panel.speaker_queue.put(pacman_sensors.PACMAN_DEATH)
         if self.lives == 0:
           # Game over
           self.display_final_score(matrix_panel)
@@ -592,6 +621,9 @@ class PacmanGame():
     # in that list, if length of list > 1, remove the option to return to the square from which they came
     # if there are still multiple options, then randomly select one and move else just move to the option that is left
     possible_coords = self.get_possible_coordinates(x_old, y_old)
+    for x_poss, y_poss in possible_coords:
+      if not (0 <= x_poss < PacmanGame.GAME_BOARD_LENGTH) or not (0 <= y_poss < PacmanGame.GAME_BOARD_HEIGHT):
+        possible_coords.remove((x_poss, y_poss))
     if len(possible_coords) > 1 and (x_old_2, y_old_2) in possible_coords: # always want "forward" movement
       possible_coords.remove((x_old_2, y_old_2))
     if len(possible_coords) == 0:
@@ -670,6 +702,10 @@ class PacmanGame():
         # in that list, if length of list > 1, remove the option to return to the square from which they came
         # if there are still multiple options, then randomly select one and move else just move to the option that is left
         possible_coords = self.get_possible_coordinates(x_old, y_old)
+        for x_poss, y_poss in possible_coords:
+          if not (0 <= x_poss < PacmanGame.GAME_BOARD_LENGTH) or not (0 <= y_poss < PacmanGame.GAME_BOARD_HEIGHT):
+            possible_coords.remove((x_poss, y_poss))
+
         if len(possible_coords) > 1 and (x_old_2, y_old_2) in possible_coords: # always want "forward" movement
           possible_coords.remove((x_old_2, y_old_2))
         if len(possible_coords) == 0:
@@ -695,6 +731,8 @@ class PacmanGame():
       if self.check_in_enemies_ghosts(*self.pacman) != -1 and self.ghosts_active:
         print("Ghost moved into a position where the pacman was!")
         # put ghost in jail
+        matrix_panel.speaker_queue.put(pacman_sensors.PACMAN_EATGHOST)
+
         ghost_idx = self.check_in_enemies_ghosts(*self.pacman)
 
         ghost_x, ghost_y = random.choice(list(self.jail.keys()))
@@ -740,6 +778,10 @@ class PacmanGame():
 if __name__ == "__main__":  
   mpu_queue = Queue()
   volume_queue = Queue()
+  speaker_queue = Queue()
+
+  speaker_thread = threading.Thread(target=pacman_sensors.output_sound, args=(speaker_queue,))
+  speaker_thread.start()
 
   i2c = board.I2C()  # uses board.SCL and board.SDA
   mpu = adafruit_mpu6050.MPU6050(i2c)
@@ -749,7 +791,7 @@ if __name__ == "__main__":
   volume_thread = threading.Thread(target=pacman_sensors.read_volume, args=(volume_queue,))
   volume_thread.start()
 
-  matrix_panel = MatrixPanel(mpu_queue, volume_queue)
+  matrix_panel = MatrixPanel(mpu_queue, volume_queue, speaker_queue)
   matrix_panel_thread = threading.Thread(target=matrix_panel.process, args=())
   matrix_panel_thread.start()
 
