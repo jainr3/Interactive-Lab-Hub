@@ -2,14 +2,14 @@
 from samplebase import SampleBase
 from runtext import RunText
 import adafruit_mpu6050, board, math, time, threading, random
-from queue import Queue
+from queue import Queue, PriorityQueue
 from rgbmatrix import graphics
 import pyaudio
 import numpy as np
 from scipy.fft import rfft, rfftfreq
 from scipy.signal.windows import hann
 from numpy_ringbuffer import RingBuffer
-import queue, subprocess
+import queue, subprocess, os
 
 ## Please change the following number so that it matches to the microphone that you are using. 
 DEVICE_INDEX = 2
@@ -26,6 +26,8 @@ CHANNELS=1
 PACMAN_BEGINNING = "sounds/pacman_beginning.wav"
 PACMAN_DEATH = "sounds/pacman_death.wav"
 PACMAN_EATGHOST = "sounds/pacman_eatghost.wav"
+PACMAN_EATFRUIT = "sounds/pacman_eatfruit.wav"
+PACMAN_CHOMP = "sounds/pacman_chomp.wav"
 
 def read_pitch_roll(mpu, mpu_queue):
   old_pitch, old_roll = -18, 7 # doesn't really matter
@@ -102,9 +104,19 @@ def read_volume(volume_queue):
 
 def output_sound(speaker_queue):
   while True:
-    print("START")
-    action = speaker_queue.get()
-    print(action)
+    # Note for future: need to config asound.conf in /etc directory to add the bluetooth device properly
+    # https://introt.github.io/docs/raspberrypi/bluealsa.html
+    priority, action = speaker_queue.get()
+
+    # use priority queue; if death (assigned high priority) then remove the rest of the items in the queue
+    if priority == 0 or priority == 2:
+      with speaker_queue.mutex: 
+        speaker_queue.queue.clear()
+    
+    #print(action)
     #subprocess.call(["aplay", action])
-    subprocess.call(["aplay", "sounds/pacman_beginning.wav"])
-    time.sleep(1)
+    #subprocess.call(["aplay", "sounds/pacman_beginning.wav"])
+    #time.sleep(1)
+    #os.system(f"mplayer -ao alsa:device=bluetooth {action}")
+    subprocess.call(["aplay", "-D", "bluealsa", action])
+

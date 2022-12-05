@@ -2,7 +2,7 @@
 from samplebase import SampleBase # seperate file
 from runtext import RunText
 import adafruit_mpu6050, board, math, time, threading, random
-from queue import Queue
+from queue import Queue, PriorityQueue
 from rgbmatrix import graphics
 import pacman_sensors # my file
 
@@ -74,7 +74,7 @@ class PacmanGame():
   GAME_BOARD_LENGTH = 62 # leave 2 pixel cols on right side for score / lives
   GAME_BOARD_HEIGHT = 32
 
-  PACMAN_BOARD = 'pacman_board_5.txt'
+  PACMAN_BOARD = 'pacman_board_2.txt'
 
   # This is calibrated based on how the user is supposed to hold the device
   PITCH_THRESHOLD = -18
@@ -268,7 +268,7 @@ class PacmanGame():
       matrix_panel.offset_canvas.Clear()
 
       # Also play sound
-      matrix_panel.speaker_queue.put(pacman_sensors.PACMAN_BEGINNING)
+      matrix_panel.speaker_queue.put((1, pacman_sensors.PACMAN_BEGINNING))
 
     my_text = "3"
     len = graphics.DrawText(matrix_panel.offset_canvas, font, 29, 18, textColor, my_text)
@@ -448,7 +448,7 @@ class PacmanGame():
     elif (self.check_in_enemies_ghosts(x, y) != -1 or ((x, y) in self.walls and self.check_in_enemies_ghosts(x_old, y_old) != -1)) and not self.ghosts_active:
       print("Pacman moved into a square where an enemy was located!")
       self.lives -= 1
-      matrix_panel.speaker_queue.put(pacman_sensors.PACMAN_DEATH)
+      matrix_panel.speaker_queue.put((0, pacman_sensors.PACMAN_DEATH))
       if self.lives == 0:
         # Game over
         self.display_final_score(matrix_panel)
@@ -467,7 +467,7 @@ class PacmanGame():
     elif (self.check_in_enemies_ghosts(x, y) != -1 or ((x, y) in self.walls and self.check_in_enemies_ghosts(x_old, y_old) != -1)) and self.ghosts_active:
       print("Pacman moved into a position where the ghost was!")
       # put ghost in jail
-      matrix_panel.speaker_queue.put(pacman_sensors.PACMAN_EATGHOST)
+      matrix_panel.speaker_queue.put((2, pacman_sensors.PACMAN_EATGHOST))
 
       ghost_idx = self.check_in_enemies_ghosts(x, y)
 
@@ -494,6 +494,7 @@ class PacmanGame():
       self.score += 10
       self.food.pop((x, y))
       self.update_score_display(matrix_panel)
+      matrix_panel.speaker_queue.put((3, pacman_sensors.PACMAN_CHOMP))
     elif (x, y) in self.power_pellets:
       self.score += 50
       self.power_pellets.pop((x, y))
@@ -501,10 +502,12 @@ class PacmanGame():
       self.switch_direction = True
       self.ghosts_timesteps_left = max(0, 100 - 15*(self.level-1)) # similar to lvl 1 = 20, 2 = 16, 3 = 12, 4 = 8, 5 = 4, 6+ = 0
       self.update_score_display(matrix_panel)
+      matrix_panel.speaker_queue.put((3, pacman_sensors.PACMAN_EATFRUIT))
     # Ghost could be on a square with food / power pellet in which case pacman would get points for both
     if self.check_in_enemies_ghosts(x, y) != -1 and self.ghosts_active:
       self.score += 200
       self.update_score_display(matrix_panel, ate_ghost=True)
+
 
   def update_lives_display(self, matrix_panel):
     # display lives
@@ -589,7 +592,7 @@ class PacmanGame():
       if self.check_in_enemies_ghosts(*self.pacman) != -1 and not self.ghosts_active:
         print("Enemy moved into a position where the pacman was!")
         self.lives -= 1
-        matrix_panel.speaker_queue.put(pacman_sensors.PACMAN_DEATH)
+        matrix_panel.speaker_queue.put((0, pacman_sensors.PACMAN_DEATH))
         if self.lives == 0:
           # Game over
           self.display_final_score(matrix_panel)
@@ -731,7 +734,7 @@ class PacmanGame():
       if self.check_in_enemies_ghosts(*self.pacman) != -1 and self.ghosts_active:
         print("Ghost moved into a position where the pacman was!")
         # put ghost in jail
-        matrix_panel.speaker_queue.put(pacman_sensors.PACMAN_EATGHOST)
+        matrix_panel.speaker_queue.put((2, pacman_sensors.PACMAN_EATGHOST))
 
         ghost_idx = self.check_in_enemies_ghosts(*self.pacman)
 
@@ -778,7 +781,7 @@ class PacmanGame():
 if __name__ == "__main__":  
   mpu_queue = Queue()
   volume_queue = Queue()
-  speaker_queue = Queue()
+  speaker_queue = PriorityQueue()
 
   speaker_thread = threading.Thread(target=pacman_sensors.output_sound, args=(speaker_queue,))
   speaker_thread.start()
