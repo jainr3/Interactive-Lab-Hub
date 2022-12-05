@@ -6,7 +6,7 @@ from queue import Queue, PriorityQueue
 from rgbmatrix import graphics
 import pacman_sensors # my file
 
-SKIP_HOMESCREEN = True
+SKIP_HOMESCREEN = False
 
 class MatrixPanel(SampleBase):
   def __init__(self, mpu_queue, volume_queue, speaker_queue, *args, **kwargs):
@@ -468,6 +468,10 @@ class PacmanGame():
       print("Pacman moved into a position where the ghost was!")
       # put ghost in jail
       matrix_panel.speaker_queue.put((2, pacman_sensors.PACMAN_EATGHOST))
+      if (x, y) not in self.walls:
+        self.update_score(matrix_panel, x, y)
+      else:
+        self.update_score(matrix_panel, x_old, y_old)
 
       ghost_idx = self.check_in_enemies_ghosts(x, y)
 
@@ -527,6 +531,15 @@ class PacmanGame():
     points_per_dot = 20
     while self.score > points_per_dot*dots_allocated_for_score_info:
       points_per_dot *= 10
+
+    # Do something special if ghost was eaten first, then redisplay the score info normally
+    if ate_ghost:
+      for i in range(self.score // points_per_dot):
+        y_val = 31 - i
+        matrix_panel.offset_canvas.SetPixel(x_val, y_val, *PacmanGame.GHOST_COLORS[0])
+        time.sleep(0.02)
+        matrix_panel.offset_canvas.SetPixel(x_val, y_val, 0, 0, 0)
+
     for i in range(dots_allocated_for_score_info):
       y_val = 31 - i
       matrix_panel.offset_canvas.SetPixel(x_val, y_val, 0, 0, 0)
@@ -606,6 +619,8 @@ class PacmanGame():
           self.pacman = self.pacman_init
           # Update the enemies active position
           self.enemies = self.enemies_init.copy()
+        return True
+    return False
 
   def enemy_scatter(self, enemy_idx, old_pos, old_2_pos):
     # the enemy is scattering itself around the board
@@ -735,6 +750,7 @@ class PacmanGame():
         print("Ghost moved into a position where the pacman was!")
         # put ghost in jail
         matrix_panel.speaker_queue.put((2, pacman_sensors.PACMAN_EATGHOST))
+        self.update_score(matrix_panel, *self.pacman)
 
         ghost_idx = self.check_in_enemies_ghosts(*self.pacman)
 
