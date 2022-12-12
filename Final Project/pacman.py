@@ -340,7 +340,7 @@ class PacmanGame():
     if sum(self.scatter_timer.values()) == -len(self.enemies) and self.level_phase != 5: # if scatter timers expired and not in last phase
       self.level_phase += 1
       phase_coeff = 1.4 - self.level_phase / 10
-      phase_time = int(max(0, 100 - 4*(self.level-1)) * phase_coeff) if self.level_phase != 5 else -1
+      phase_time = int(max(0, 200 - 4*(self.level-1)) * phase_coeff) if self.level_phase != 5 else -1
       self.scatter_timer = {i: -1 if i < self.level_phase-1 else phase_time for i in self.enemies.keys()}
    
     # First update the Pacman position based on the pitch / roll
