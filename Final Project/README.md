@@ -383,9 +383,9 @@ $ sudo python3 rotating-block-generator.py --led-cols=64 --led-gpio-mapping=adaf
 $ sudo python3 pacman_test.py --led-cols=64 --led-gpio-mapping=adafruit-hat --led-slowdown-gpio=4 --led-brightness=20
 ```
 
-The main code for the project is located in pacman.py which has dependencies in pacman_sensors.py, sample_base.py and a few other library files.
+The main code for the project is located in [pacman.py](pacman.py) which has dependencies in [pacman_sensors.py](pacman_sensors.py), [sample_base.py](samplebase.py) and a few other library files.
 
-The initial testing files and other debugging files that we used are: gyroscope_test.py, led_panel_test.py, runtext.py, and integration_test.py.
+The initial testing files and other debugging files that we used are: [gyroscope_test.py](gyroscope_test.py), [led_panel_test.py](led_panel_test.py), [runtext.py](runtext.py), and [integration_test.py](integration_test.py).
 
 <p align="right">[<a href="#readme-top">Top</a>]</p>
 
