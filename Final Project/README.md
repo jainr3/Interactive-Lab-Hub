@@ -74,7 +74,7 @@
 <!-- DEMO -->
 ## Demo
 
-The first video shows our product during Cornell Tech's Open Studio, where lots of people got the chance to try it. The second video demonstrates our implementation of Pacman on a matrix panel and the full functionality of the game.
+The first video shows our product during Cornell Tech's Open Studio, where lots of people got the chance to try it. Our project was also featured on Cornell Tech's social media: [LinkedIn](https://www.linkedin.com/posts/cornell-tech_openstudio-studio-presentations-activity-7006371292236939265-g1_X?utm_source=share&utm_medium=member_desktop), [Instagram](https://www.instagram.com/p/Cl4d0hvOTAb/?hl=en) The second video demonstrates our implementation of Pacman on a matrix panel and the full functionality of the game.
 
 <div align="center">
 <a href="https://www.youtube.com/watch?v=YBvebi-GN_Y"><img src="https://img.youtube.com/vi/YBvebi-GN_Y/0.jpg" alt="IDD Final Project Matrix Gaming Console - Open Studio"></a>
