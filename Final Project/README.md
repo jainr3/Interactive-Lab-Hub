@@ -35,6 +35,7 @@
           <li><a href="#hardware-development">Hardware Development</a></li>
           <ul>
             <li><a href="#sensor-integration">Sensor Integration</a></li>
+            <li><a href="#power">Power</a></li>
             <li><a href="#acryllic-case-design">Acryllic Case Design</a></li>
           </ul>
           <li><a href="#software-development">Software Development</a></li>
@@ -189,6 +190,16 @@ We also used a USB microphone and plugged it into one of the Raspberry Pi's USB 
 
 <p align="right">[<a href="#readme-top">Top</a>]</p>
 
+#### Power
+
+One important consideration for the project was the power source that would be needed to power the device. As in many previous projects, the standard Raspberry Pi power cable (5V 2.5A) was good for powering the main board. However, since the matrix panel draws more current, we had to use a separate power supply for that (5V 4A). We also considered making the device standalone by using batteries but decided against it because there were too many unknowns. The primary concern was how long the batteries would last but we also thought about how long it would take to recharge them and the added cost for the batteries. The tradeoff was that we had two cables sticking out of the board, but this was acceptable since we were able to place them on the back panel and out of the way.
+
+<div align="center">
+<img src="imgs/power.png" alt="Hardware" width=1000/>
+</div>
+
+<p align="right">[<a href="#readme-top">Top</a>]</p>
+
 <!-- ACRYLLIC CASE DESIGN -->
 #### Acryllic Case Design
 
@@ -304,11 +315,11 @@ As a last step of the whole final project we integrated a speaker into the syste
 * USB Microphone - $8
   * https://www.amazon.com/SunFounder-Microphone-Raspberry-Recognition-Software/dp/B01KLRBHGM 
 * Raspberry Pi 3B+ - $35 (had in class kit)
-  * https://www.mouser.com/ProductDetail/Adafruit/3775
+  * https://www.mouser.com/ProductDetail/485-3775
 * StemmaQT Cables - $1 (had in class kit)
-  * https://www.mouser.com/ProductDetail/Adafruit/4399
+  * https://www.mouser.com/ProductDetail/485-4399
 * Raspberry Pi Power supply 5V 2.5A - $8 (had in class kit)
-  * https://www.mouser.com/ProductDetail/Adafruit/1995
+  * https://www.mouser.com/ProductDetail/485-1995
 * Any Bluetooth Headset / Speaker
 
 <p align="right">[<a href="#readme-top">Top</a>]</p>
