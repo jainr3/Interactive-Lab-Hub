@@ -76,10 +76,7 @@
 
 The first video demonstrates our implementation of Pacman on a matrix panel and the full functionality of the game. The second video shows our product during Cornell Tech's Open Studio, where lots of people got the chance to try it. 
 
-[![Final Project Functional Checkoff](https://img.youtube.com/vi/FJsH19XHq3g/0.jpg)](https://www.youtube.com/watch?v=FJsH19XHq3g)
-
-
-[![IDD Final Project Matrix Gaming Console - Open Studio](https://img.youtube.com/vi/YBvebi-GN_Y/0.jpg)](https://www.youtube.com/watch?v=YBvebi-GN_Y)
+[![Final Project Functional Checkoff](https://img.youtube.com/vi/FJsH19XHq3g/0.jpg)](https://www.youtube.com/watch?v=FJsH19XHq3g) [![IDD Final Project Matrix Gaming Console - Open Studio](https://img.youtube.com/vi/YBvebi-GN_Y/0.jpg)](https://www.youtube.com/watch?v=YBvebi-GN_Y)
 
 <p align="right">[<a href="#readme-top">Top</a>]</p>
 
@@ -171,8 +168,7 @@ After the ordered parts arrived, we wired the matrix panel, its corresponding ma
 
 Since we wanted to use an accelerometer/gyroscope to sense the tilt of the matrix panel, we had to solder connectors for four pins (SDA, SCL, 5V, GND) on the back of the matrix bonnet. It was difficult to solder these four pins since they were right next to each other on the board, but we accomplished the feat with some tips and advice from the MakerLab super makers.
 
-<img src="imgs/matrix_bonnet_soldering.png" alt="Hardware" width=400/>
-<img src="imgs/hardware_soldering_bonnet.png" alt="Hardware" width=400/>
+<img src="imgs/matrix_bonnet_soldering.png" alt="Hardware" width=400/> <img src="imgs/hardware_soldering_bonnet.png" alt="Hardware" width=400/>
 
 We also used a USB microphone and plugged it into one of the Raspberry Pi's USB ports. The Raspberry Pi, sensors and speaker were placed into the back of an acryllic case that we created (more below). The image below shows the entire back of the case including Raspberry Pi, matrix panel,  matrix bonnet, microphone and accelerometer/gyroscope (speaker is missing from this image). 
 
@@ -185,11 +181,9 @@ We also used a USB microphone and plugged it into one of the Raspberry Pi's USB 
 
 As a next step, we designed a permanent acryllic casing for the matrix panel. We generated our design by adjusting pre-defined parameters using [Festi](https://www.festi.info/boxes.py/). We used the Universal Box with parallel finger joint holes. The final box design can be seen in the following [file](./imgs/final_box_design.ai). We also had 4 other designs ([1](./imgs/box_design1.ai), [2](./imgs/box_design2.ai), [3](./imgs/box_design3.ai), [4](./imgs/box_design4.ai)) that we used to experiment with various parameters and features of the box. After generating a design, we printed a cardboard prototype to first verify that the sizing and other attributes were correct. We found some issues with the design related to the number of finger joints per side, the dimensions of the holes, and the actual dimensions of the case to ensure minimal play. After adjusting the design to fix these issues, we used the laser cutter to cut the final acrylic case.
 
-<img src="imgs/hardware_cardboard_casing.png" alt="Hardware" width=400/>
-<img src="imgs/hardware_cardboard.png" alt="Hardware" width=400/>
+<img src="imgs/hardware_cardboard_casing.png" alt="Hardware" width=400/> <img src="imgs/hardware_cardboard.png" alt="Hardware" width=400/>
 
-<img src="imgs/hardware_casing.png" alt="Hardware" width=400/>
-<img src="imgs/hardware_casing2.png" alt="Hardware" width=400/>
+<img src="imgs/hardware_casing.png" alt="Hardware" width=400/> <img src="imgs/hardware_casing2.png" alt="Hardware" width=400/>
 
 <p align="right">[<a href="#readme-top">Top</a>]</p>
 
