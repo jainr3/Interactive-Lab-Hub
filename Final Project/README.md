@@ -247,6 +247,10 @@ The next step was to create a maze based on the available pixel size of the matr
 
 This ended up not being the best approach, so we had to manually design a maze with 62x32 shape and add in walls to narrow down the path for Pacman. This approach resulted in our final board [#2](pacman_board_2.txt). For the two boards described earlier, we assumed that Pacman gets food at every space that it can move into. Another approach was board [#3](pacman_board_3.txt), where we placed food at every other pixel. The intention with this board was to make the board less cluttered so that a player would not be overwhelmed by all the pixels being lit up at the same time. However, after some initial testing we determined that it was much too difficult for people to understand where the path that Pacman could follow was since there were too many gaps in where Pacman could move. We also generated boards [#4](pacman_board_4.txt) and [#5](pacman_board_5.txt) to easily test specific functionality of the game. For example, by having fewer dots on the board we could finish a level much quicker to test that logic. Additionally, we wanted to test what happens when a enemy tries to go through a tunnel so we "trapped" the enemy in the tunnel passageway so it kept walking back and forth between that spot.
 
+<div align="center">
+<img src="imgs/full-maze.jpeg" alt="Software" width=400/>
+</div>
+
 All Maze Files: [1](pacman_board_1.txt), [2](pacman_board_2.txt), [3](pacman_board_3.txt), [4](pacman_board_4.txt), [5](pacman_board_5.txt).
 
 <p align="right">[<a href="#readme-top">Top</a>]</p>
