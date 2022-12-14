@@ -74,9 +74,9 @@
 <!-- DEMO -->
 ## Demo
 
-The first video demonstrates our implementation of Pacman on a matrix panel and the full functionality of the game. The second video shows our product during Cornell Tech's Open Studio, where lots of people got the chance to try it. 
+The first video shows our product during Cornell Tech's Open Studio, where lots of people got the chance to try it. The second video demonstrates our implementation of Pacman on a matrix panel and the full functionality of the game.
 
-[![Final Project Functional Checkoff](https://img.youtube.com/vi/FJsH19XHq3g/0.jpg)](https://www.youtube.com/watch?v=FJsH19XHq3g) [![IDD Final Project Matrix Gaming Console - Open Studio](https://img.youtube.com/vi/YBvebi-GN_Y/0.jpg)](https://www.youtube.com/watch?v=YBvebi-GN_Y)
+[![IDD Final Project Matrix Gaming Console - Open Studio](https://img.youtube.com/vi/YBvebi-GN_Y/0.jpg)](https://www.youtube.com/watch?v=YBvebi-GN_Y) [![Final Project Functional Checkoff](https://img.youtube.com/vi/FJsH19XHq3g/0.jpg)](https://www.youtube.com/watch?v=FJsH19XHq3g)
 
 <p align="right">[<a href="#readme-top">Top</a>]</p>
 
@@ -85,7 +85,9 @@ The first video demonstrates our implementation of Pacman on a matrix panel and 
 
 Our project is a handheld matrix gaming console in which we have developed the game of Pacman from scratch. By tilting the board, the user can control the position of Pacman and eat food or ghosts to accumulate points. There's a catch though! The louder the environment the user is playing in, the more difficult the game. So put your skills to the test and play a game of Pacman!
 
+<div align="center">
 <img src="imgs/rules.png" alt="Game rules"/>
+</div>
 
 <p align="right">[<a href="#readme-top">Top</a>]</p>
 
@@ -120,11 +122,13 @@ Final Pacman Idea:
 
 The sketches and verplank diagrams are below.
 
+<div align="center">
 <img src="imgs/storyboard.png" alt="Storyboard"/>
 
 <img src="imgs/storyboard_pacman.png" alt="Storyboard Pacman"/>
 
 <img src="imgs/verplank.png" alt="Verplank"/>
+</div>
 
 One of the biggest risks for our idea was that the parts ordered turn out to be defective. Specifically, if any one of the matrix panels, matrix bonnet, or power supply turns out to be faulty, we will need to reorder parts which can take time. Another risk was that something unexpected arises when we try to make connections between the components. In general, our project plan was somewhat ambitious for the time frame as there are a lot of unknowns with both the hardware and software, but our extensive research mitigated these risks.
 
@@ -164,15 +168,21 @@ One fall-back plan to mitigate the risk that the parts are defective is that we 
 
 After the ordered parts arrived, we wired the matrix panel, its corresponding matrix bonnet and the Raspberry Pi together and ran simple software examples to see if the matrix panel was in proper working order.
 
+<div align="center">
 <img src="imgs/hardware_wiring.png" alt="Hardware" width=400/>
+</div>
 
 Since we wanted to use an accelerometer/gyroscope to sense the tilt of the matrix panel, we had to solder connectors for four pins (SDA, SCL, 5V, GND) on the back of the matrix bonnet. It was difficult to solder these four pins since they were right next to each other on the board, but we accomplished the feat with some tips and advice from the MakerLab super makers.
 
+<div align="center">
 <img src="imgs/matrix_bonnet_soldering.png" alt="Hardware" width=400/> <img src="imgs/hardware_soldering_bonnet.png" alt="Hardware" width=400/>
+</div>
 
 We also used a USB microphone and plugged it into one of the Raspberry Pi's USB ports. The Raspberry Pi, sensors and speaker were placed into the back of an acryllic case that we created (more below). The image below shows the entire back of the case including Raspberry Pi, matrix panel,  matrix bonnet, microphone and accelerometer/gyroscope (speaker is missing from this image). 
 
+<div align="center">
 <img src="imgs/hardware_wiring2.png" alt="Hardware" width=400/>
+</div>
 
 <p align="right">[<a href="#readme-top">Top</a>]</p>
 
@@ -181,9 +191,11 @@ We also used a USB microphone and plugged it into one of the Raspberry Pi's USB 
 
 As a next step, we designed a permanent acryllic casing for the matrix panel. We generated our design by adjusting pre-defined parameters using [Festi](https://www.festi.info/boxes.py/). We used the Universal Box with parallel finger joint holes. The final box design can be seen in the following [file](./imgs/final_box_design.ai). We also had 4 other designs ([1](./imgs/box_design1.ai), [2](./imgs/box_design2.ai), [3](./imgs/box_design3.ai), [4](./imgs/box_design4.ai)) that we used to experiment with various parameters and features of the box. After generating a design, we printed a cardboard prototype to first verify that the sizing and other attributes were correct. We found some issues with the design related to the number of finger joints per side, the dimensions of the holes, and the actual dimensions of the case to ensure minimal play. After adjusting the design to fix these issues, we used the laser cutter to cut the final acrylic case.
 
+<div align="center">
 <img src="imgs/hardware_cardboard_casing.png" alt="Hardware" width=400/> <img src="imgs/hardware_cardboard.png" alt="Hardware" width=400/>
 
 <img src="imgs/hardware_casing.png" alt="Hardware" width=400/> <img src="imgs/hardware_casing2.png" alt="Hardware" width=400/>
+</div>
 
 <p align="right">[<a href="#readme-top">Top</a>]</p>
 
@@ -193,11 +205,15 @@ As a next step, we designed a permanent acryllic casing for the matrix panel. We
 
 The most important piece of the software development was to ensure that we could accurately (and quickly) read values from our gyroscope. We also had to ensure that the gyroscope was calibrated properly and that we could calculate the right values that translate to real-world tilt. The two important angles that we calculated are "pitch" and "roll". To calculate these angles, we used the equations found below, which are derived from [here](https://ozzmaker.com/compass2/). 
 
+<div align="center">
 <img src="imgs/gyro_calc.png" alt="Software" width=1000/>
+</div>
 
 To test the functionality of the matrix panel, we taped a gyroscope to a box and ran a script using the equations described above. 
 
+<div align="center">
 <img src="imgs/software_testing_gyroscope.png" alt="Software" width=400/>
+</div>
 
 After we found that the gyroscope worked and responded surprisingly well, we wrote some simple scripts to move a point on the matrix board by rotating the gyroscope. Here's a behind-the-scenes video showing some tests of the gyroscope readings and the progression of the Pacman's movement on the board.
 
@@ -209,7 +225,9 @@ After we found that the gyroscope worked and responded surprisingly well, we wro
 
 From the beginning of the project, we wanted our final product to be very intuitive to use and present in Open Studio. Therefore, we decided to design a home screen that will be displayed when the user sees our matrix panel and wants to start the game. The homescreen consists of a game tutorial on the left side. There, it explains that you need to tilt the matrix panel in the vertical and horizontal directions to move Pacman and that the user gets 3 lives. On the right side of the homescreen, the user sees a small calibration board where they can get used to Pacman's movement mechanics by tilting the board before starting the game. To start the game, the user must eat the four white dots that can be seen in the blue box at the bottom right of the home screen. You can see the homescreen in the image below. 
 
+<div align="center">
 <img src="imgs/software_homescreen.png" alt="Software" width=400/>
+</div>
 
 <p align="right">[<a href="#readme-top">Top</a>]</p>
 
@@ -217,7 +235,9 @@ From the beginning of the project, we wanted our final product to be very intuit
 
 The next step was to create a maze based on the available pixel size of the matrix panel. The matrix panel is 64x32, but columns 63 and 64 were reserved for displaying the player's remaining lives and score. This means that our maze should be 62x32 in size. However, the classic map for Pacman only comes in the size of 28x31 so we had to create our own. We tried to use popular maze generation scripts like [Shaun LeBron's generator](https://shaunlebron.github.io/pacman-mazegen/) but modifying the existing code to suit our needs proved too difficult. Instead, we had to make our own board from scratch. Our first approach was to take a maze that was a different size, display it on the matrix board, and then see if we could scale it until it fit perfectly. An image of this board [#1](pacman_board_1.txt) can be seen below. 
 
+<div align="center">
 <img src="imgs/software_dev_testing_maze_display.png" alt="Software" width=400/>
+</div>
 
 This ended up not being the best approach, so we had to manually design a maze with 62x32 shape and add in walls to narrow down the path for Pacman. This approach resulted in our final board [#2](pacman_board_2.txt). For the two boards described earlier, we assumed that Pacman gets food at every space that it can move into. Another approach was board [#3](pacman_board_3.txt), where we placed food at every other pixel. The intention with this board was to make the board less cluttered so that a player would not be overwhelmed by all the pixels being lit up at the same time. However, after some initial testing we determined that it was much too difficult for people to understand where the path that Pacman could follow was since there were too many gaps in where Pacman could move. We also generated boards [#4](pacman_board_4.txt) and [#5](pacman_board_5.txt) to easily test specific functionality of the game. For example, by having fewer dots on the board we could finish a level much quicker to test that logic. Additionally, we wanted to test what happens when a enemy tries to go through a tunnel so we "trapped" the enemy in the tunnel passageway so it kept walking back and forth between that spot.
 
@@ -235,11 +255,15 @@ Another unique feature of our Pacman game is that the speed of the game changes 
 
 In our implementation of the game we tried to get as close as possible to the real Pacman game and then add a few twists. Each player has 3 lives and can earn points by eating food, where the user can get 10 points for food and 50 points for power pellets. After eating a power pellet, the game switches to ghost mode, where Pacman can eat ghosts. For each ghost eaten, the user gets 200 points. The game has four enemies that start at four different corners of the board. Although there are four enemies, not all of them are actively hunting Pacman and they are split between a "Scatter" and "Chase" mode depending on what phase of the level the user is in. In scatter mode, the enemies do not actively chase Pacman, but focus on a specific point on the matrix panel and move towards that position. Because they want to reach that position (set to the four corners of the maze), and the fact that they have to move "forwards", they end up moving in loops around that spot (see figure below).
 
+<div align="center">
 <img src="imgs/scatter_targets.png" alt="Software" width=400/>
+</div>
 
 In addition to "Scatter" mode, the enemies have a "Chase" mode. As mentioned earlier, each enemy starts in "Scatter" mode, but after a certain amount of time the first enemy switches to "Chase" mode, then the second, until in the end all enemies are in "Chase" mode (with time delays between each). In "Chase" mode, the enemy is actively chasing Pacman's position (see figure below). Our algorithm simply takes the coordinates of the enemies potential next steps and the coordinates of the Pacman and calculates the Euclidean distances for each of those coordinates. The enemy then moves to the square the minimizes this distance. We also considered using Manhattan distance which (in contrast to Euclidean distance) calculates the number of grid squares between the two coordinates. Additionally, we tried to use Breadth First Search (BFS) which we thought would be the best solution. However, our implementation of this algorithm (as seen in our main file) might have a bug in it or it may simply take too much time since this could potentially be run 4x per game state iteration which is a lot. Therefore we decided to use the minimum Euclidean distance algorithm, which does its job amazingly well.
 
+<div align="center">
 <img src="imgs/blinky_targeting.png" alt="Software" width=400/>
+</div>
 
 Helpful resources we used for the game logic:
 [1](https://gameinternals.com/understanding-pac-man-ghost-behavior),
