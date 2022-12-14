@@ -97,11 +97,11 @@ Our project is a handheld matrix gaming console in which we have developed the g
 <!-- BUILT WITH -->
 ## Built With
 
-In the following section, we explain the steps we took to build the project. We started from the ideation phase and built up to designing, creating and testing our device. This includes the  process of developing the hardware and software components.
+In the following section, we explain the steps we took to build the project. We started from the ideation phase and built up to designing, creating and testing our device. This includes the process of developing the hardware and software components.
 
 ### Ideation / Concept Design
 
-The original idea was to create an interactive RGB matrix panel on which the user can play games. The difference from conventional games is that the angular movement of the matrix panel is detected by a gyroscope and displayed in the game. Additionally, a microphone will be used to allow the user to control special aspects of the game with their voice. We originally wanted to incorporate a capacitive sensor as well, but decided not to use it as it would complicate the interaction. The list of potential games that we wanted to implement are below - we chose Pacman.
+The original idea was to create an interactive RGB matrix panel on which the user can play games. The difference from conventional games is that the angular movement of the matrix panel is detected by a gyroscope and displayed in the game. Additionally, a microphone will be used to allow the user to control special aspects of the game with their voice. We originally wanted to incorporate a capacitive sensor as well, but decided not to use it as it would complicate the interaction. The list of potential games that we wanted to implement are below - we chose Pacman. For reference the original README with the ideation / project plan is located [here](https://github.com/jainr3/Interactive-Lab-Hub/blob/Fall2022/Final%20Project/README_OLD.md).
 
 Potential games ideas (original brainstorming):
 * Pacman:
@@ -382,6 +382,10 @@ $ sudo python3 rotating-block-generator.py --led-cols=64 --led-gpio-mapping=adaf
 
 $ sudo python3 pacman_test.py --led-cols=64 --led-gpio-mapping=adafruit-hat --led-slowdown-gpio=4 --led-brightness=20
 ```
+
+The main code for the project is located in pacman.py which has dependencies in pacman_sensors.py, sample_base.py and a few other library files.
+
+The initial testing files and other debugging files that we used are: gyroscope_test.py, led_panel_test.py, runtext.py, and integration_test.py.
 
 <p align="right">[<a href="#readme-top">Top</a>]</p>
 
