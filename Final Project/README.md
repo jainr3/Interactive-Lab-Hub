@@ -76,7 +76,10 @@
 
 The first video shows our product during Cornell Tech's Open Studio, where lots of people got the chance to try it. The second video demonstrates our implementation of Pacman on a matrix panel and the full functionality of the game.
 
-[![IDD Final Project Matrix Gaming Console - Open Studio](https://img.youtube.com/vi/YBvebi-GN_Y/0.jpg)](https://www.youtube.com/watch?v=YBvebi-GN_Y) [![Final Project Functional Checkoff](https://img.youtube.com/vi/FJsH19XHq3g/0.jpg)](https://www.youtube.com/watch?v=FJsH19XHq3g)
+<div align="center">
+<a href="https://www.youtube.com/watch?v=YBvebi-GN_Y"><img src="https://img.youtube.com/vi/YBvebi-GN_Y/0.jpg" alt="IDD Final Project Matrix Gaming Console - Open Studio"></a>
+<a href="https://www.youtube.com/watch?v=FJsH19XHq3g"><img src="https://img.youtube.com/vi/FJsH19XHq3g/0.jpg" alt="Final Project Functional Checkoff"></a>
+</div>
 
 <p align="right">[<a href="#readme-top">Top</a>]</p>
 
@@ -217,7 +220,10 @@ To test the functionality of the matrix panel, we taped a gyroscope to a box and
 
 After we found that the gyroscope worked and responded surprisingly well, we wrote some simple scripts to move a point on the matrix board by rotating the gyroscope. Here's a behind-the-scenes video showing some tests of the gyroscope readings and the progression of the Pacman's movement on the board.
 
-[![Final Project Gyro Behind the Scenes](https://img.youtube.com/vi/jXzmlWeQkb0/0.jpg)](https://www.youtube.com/watch?v=jXzmlWeQkb0)
+
+<div align="center">
+<a href="https://www.youtube.com/watch?v=jXzmlWeQkb0"><img src="https://img.youtube.com/vi/jXzmlWeQkb0/0.jpg" alt="Final Project Gyro Behind the Scenes"></a>
+</div>
 
 <p align="right">[<a href="#readme-top">Top</a>]</p>
 
@@ -307,7 +313,11 @@ As a last step of the whole final project we integrated a speaker into the syste
 
 Below is a video of user testing where users tested our project at our final project presentation day. We also presented our project during Cornell Tech's Open Studio, where many people got the chance to try our project. 
 
-[![IDD Final Project Matrix Gaming Console - User Testing](https://img.youtube.com/vi/5i83VmwyNsk/0.jpg)](https://www.youtube.com/watch?v=5i83VmwyNsk)
+<div align="center">
+<a href="https://www.youtube.com/watch?v=5i83VmwyNsk"><img src="https://img.youtube.com/vi/5i83VmwyNsk/0.jpg" alt="IDD Final Project Matrix Gaming Console - User Testing"></a>
+</div>
+
+One thing that we learned from our user testing is that our game is **hard**! However this was not unexpected since the actual game is hard even for the Pacman pros. Many of our users were able to clear about 25%-40% of the board which is great for the first try.
 
 <p align="right">[<a href="#readme-top">Top</a>]</p>
 
